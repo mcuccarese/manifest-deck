@@ -258,10 +258,45 @@
   /* ============================================================
      FRAME 01 — GOLDEN AGE — three horizontal timeline tracks
      ============================================================ */
+  /* Frame 1 is taller than one viewport (4 lanes × 200px). Drop sticky on
+     just this one frame so the user scrolls through it normally; sticky
+     cover-scroll resumes from Frame 2. */
+  #frame-1 {
+    position: relative;
+    min-height: auto;
+  }
+
   .tracks {
     position: relative;
-    margin-top: 30px;
+    margin-top: 28px;
     padding: 0 8px 60px;
+  }
+  /* Small textual context above the tracks listing enabling-tech
+     inflection points (2015-2017 — too dense to chart as their own
+     track without overwhelming the year axis). */
+  .tracks-prelude {
+    margin: 0 0 16px;
+    padding: 12px 18px;
+    background: var(--surface);
+    border-left: 2px solid var(--ink-faint);
+    border-radius: 0 8px 8px 0;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--ink-muted);
+    line-height: 1.55;
+  }
+  .tracks-prelude .tp-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-right: 8px;
+    font-weight: 600;
+  }
+  .tracks-prelude strong {
+    color: var(--ink-soft);
+    font-weight: 600;
   }
   .track-row {
     position: relative;
@@ -286,7 +321,7 @@
   }
   .track-lane {
     position: relative;
-    height: 140px;
+    height: 260px;
   }
   .track-dot {
     position: absolute;
@@ -298,18 +333,42 @@
     border: 2px solid var(--accent);
     box-shadow: 0 0 0 4px var(--accent-soft);
   }
-  .track-dot.warm { border-color: var(--warm); box-shadow: 0 0 0 4px var(--warm-soft); }
-  /* Leader line from dot up or down to its label */
-  .track-dot::after {
+  .track-dot.warm  { border-color: var(--warm);  box-shadow: 0 0 0 4px var(--warm-soft); }
+  .track-dot.green { border-color: #16a34a;      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.10); }
+  .track-dot.muted { border-color: var(--ink-faint); box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.10); }
+
+  /* Spotfire-style leader: vertical stem (::before) plus optional horizontal
+     jog (::after). Tier classes (t-u1/t-u2/t-d1/t-d2) set stem length and
+     label Y. Jog classes (jog-l/jog-r) offset label horizontally and add a
+     horizontal connector. Backwards-compatible aliases: above = t-u1,
+     below = t-d1. */
+  .track-dot::before {
     content: "";
     position: absolute;
     left: 50%;
     width: 1px;
     background: var(--rule-strong);
+    transform: translateX(-0.5px);
   }
-  .track-dot.above::after { top: -38px;     height: 36px; }
-  .track-dot.below::after { top: 14px;      height: 36px; }
-  /* Label positioning */
+  .track-dot::after {
+    content: "";
+    position: absolute;
+    height: 1px;
+    background: var(--rule-strong);
+    display: none;
+  }
+  /* Tier 1 above (close above dot) */
+  .track-dot.above::before,
+  .track-dot.t-u1::before { bottom: 14px; height: 32px; }
+  /* Tier 2 above (far above dot) */
+  .track-dot.t-u2::before { bottom: 14px; height: 82px; }
+  /* Tier 1 below */
+  .track-dot.below::before,
+  .track-dot.t-d1::before { top: 14px; height: 32px; }
+  /* Tier 2 below */
+  .track-dot.t-d2::before { top: 14px; height: 82px; }
+
+  /* Label positioning — base (centered on dot) */
   .track-dot .tag {
     position: absolute;
     left: 50%;
@@ -331,10 +390,51 @@
     color: var(--ink-muted);
     letter-spacing: 0.04em;
   }
-  .track-dot.above .tag { top: -55px; }
-  .track-dot.above .sub { top: -40px; }
-  .track-dot.below .tag { top: 50px; }
-  .track-dot.below .sub { top: 65px; }
+  /* Tier Y positions — tier 2 sits far above/below tier 1 so dense
+     clusters can pack labels into 4 visual rows without collisions. */
+  .track-dot.above .tag, .track-dot.t-u1 .tag { top: -65px; }
+  .track-dot.above .sub, .track-dot.t-u1 .sub { top: -50px; }
+  .track-dot.t-u2  .tag { top: -115px; }
+  .track-dot.t-u2  .sub { top: -100px; }
+  .track-dot.below .tag, .track-dot.t-d1 .tag { top: 50px; }
+  .track-dot.below .sub, .track-dot.t-d1 .sub { top: 65px; }
+  .track-dot.t-d2  .tag { top: 100px; }
+  .track-dot.t-d2  .sub { top: 115px; }
+
+  /* Horizontal jog: shifts label sideways, adds a short horizontal
+     connector at the top of the vertical stem. */
+  .track-dot.jog-l .tag,
+  .track-dot.jog-l .sub { transform: translateX(calc(-50% - 32px)); }
+  .track-dot.jog-r .tag,
+  .track-dot.jog-r .sub { transform: translateX(calc(-50% + 32px)); }
+  .track-dot.jog-ll .tag,
+  .track-dot.jog-ll .sub { transform: translateX(calc(-50% - 60px)); }
+  .track-dot.jog-rr .tag,
+  .track-dot.jog-rr .sub { transform: translateX(calc(-50% + 60px)); }
+
+  /* Horizontal connector segment (display + width) */
+  .track-dot.jog-l::after,
+  .track-dot.jog-r::after  { display: block; width: 32px; }
+  .track-dot.jog-ll::after,
+  .track-dot.jog-rr::after { display: block; width: 60px; }
+  .track-dot.jog-l::after,
+  .track-dot.jog-ll::after { right: 50%; left: auto; }
+  .track-dot.jog-r::after,
+  .track-dot.jog-rr::after { left: 50%; }
+
+  /* Vertical position of horizontal connector — at end of vertical stem */
+  .track-dot.above.jog-l::after, .track-dot.t-u1.jog-l::after,
+  .track-dot.above.jog-r::after, .track-dot.t-u1.jog-r::after,
+  .track-dot.above.jog-ll::after, .track-dot.t-u1.jog-ll::after,
+  .track-dot.above.jog-rr::after, .track-dot.t-u1.jog-rr::after  { bottom: 46px; }
+  .track-dot.t-u2.jog-l::after,  .track-dot.t-u2.jog-r::after,
+  .track-dot.t-u2.jog-ll::after, .track-dot.t-u2.jog-rr::after   { bottom: 96px; }
+  .track-dot.below.jog-l::after, .track-dot.t-d1.jog-l::after,
+  .track-dot.below.jog-r::after, .track-dot.t-d1.jog-r::after,
+  .track-dot.below.jog-ll::after, .track-dot.t-d1.jog-ll::after,
+  .track-dot.below.jog-rr::after, .track-dot.t-d1.jog-rr::after  { top: 46px; }
+  .track-dot.t-d2.jog-l::after,  .track-dot.t-d2.jog-r::after,
+  .track-dot.t-d2.jog-ll::after, .track-dot.t-d2.jog-rr::after   { top: 96px; }
   /* Year axis at the bottom of the tracks block */
   .tracks-axis {
     position: relative;
@@ -1190,79 +1290,141 @@
       <div class="reveal-up">
         <p class="frame-eyebrow">01 &middot; The landscape</p>
         <h1 class="frame-headline">We are entering the <em>golden age</em> of tech-enabled drug discovery.</h1>
-        <p class="frame-lede">Three pillars are flourishing at once: <strong>scaled perturbation</strong>, <strong>predictive models</strong>, and <strong>patient data</strong>. What once required dedicated, decade-long infrastructure programs is now often <em>freely accessible, buildable, outsourceable, or licensable</em>.</p>
+        <p class="frame-lede">Three pillars are flourishing at once: <strong>scaled perturbation</strong>, <strong>predictive models</strong>, and <strong>patient data</strong>. They rest on a decade of method breakthroughs and feed a new generation of <strong>multi-omics atlases</strong>. What once required dedicated, decade-long infrastructure programs is now often <em>freely accessible, buildable, outsourceable, or licensable</em>.</p>
       </div>
 
       <div class="tracks reveal-up">
-        <!-- TRACK 1 — Scaled perturbation
-             Positioned by verified release date. Access tags from the
-             vetted reference table; Phenom-1 (internal) dropped in favor of
-             its open release OpenPhenom-S/16. -->
+
+        <!-- ENABLING TECH CONTEXT NOTE — five method inflection points from
+             2015-2017 that made everything below possible. Too dense to chart
+             as their own track without distorting the year axis. -->
+        <p class="tracks-prelude">
+          <span class="tp-tag">2015&ndash;2017 · method foundations</span>
+          <strong>Droplet scRNA-seq</strong> (Drop-seq, 10x Chromium &middot; 2015&ndash;2016),
+          <strong>Cell Painting</strong> (2016),
+          <strong>Spatial transcriptomics</strong> (2016),
+          <strong>Perturb-seq</strong> (Dixit, Adamson 2016), and the
+          <strong>Transformer</strong> (Jun 2017) seeded the data and model layers below.
+        </p>
+
+        <!-- TRACK 1 — Scaled perturbation (verified, with access types) -->
         <div class="track-row">
           <div class="track-label">Scaled<br>perturbation</div>
           <div class="track-lane reveal-cascade">
-            <!-- RxRx1: Jun 2019 — pre-axis. -->
-            <div class="track-dot above" style="left: 3%;"><span class="tag">RxRx1</span><span class="sub">Jun 2019 · open</span></div>
-            <!-- Perturb-seq (Replogle et al. genome-scale): Jun 2022. -->
-            <div class="track-dot below" style="left: 29%;"><span class="tag">Perturb-seq</span><span class="sub">Jun 2022 · open</span></div>
+            <!-- RxRx1: Jun 2019 — Recursion phenomics. -->
+            <div class="track-dot t-u1" style="left: 32%;"><span class="tag">RxRx1</span><span class="sub">Jun 2019 · open</span></div>
+            <!-- Perturb-seq genome-scale (Replogle et al.): Jun 2022. -->
+            <div class="track-dot t-d1" style="left: 56%;"><span class="tag">Perturb-seq</span><span class="sub">Jun 2022 · open</span></div>
             <!-- RxRx3 (alongside MolRec): Jan 2023. -->
-            <div class="track-dot above" style="left: 37%;"><span class="tag">RxRx3</span><span class="sub">Jan 2023 · open</span></div>
+            <div class="track-dot t-u1" style="left: 61%;"><span class="tag">RxRx3</span><span class="sub">Jan 2023 · open</span></div>
             <!-- JUMP-CP paper anchor: Mar 2023. -->
-            <div class="track-dot below" style="left: 39%;"><span class="tag">JUMP-CP</span><span class="sub">Mar 2023 · open</span></div>
-            <!-- OpenPhenom-S/16: Nov 2024 (Recursion open release of Phenom line). -->
-            <div class="track-dot above" style="left: 63%;"><span class="tag">OpenPhenom-S/16</span><span class="sub">Nov 2024 · open</span></div>
-            <!-- Tahoe-100M: Feb 2025 — CC0. -->
-            <div class="track-dot below" style="left: 66%;"><span class="tag">Tahoe-100M</span><span class="sub">Feb 2025 · open</span></div>
+            <div class="track-dot t-d2 jog-l" style="left: 62%;"><span class="tag">JUMP-CP</span><span class="sub">Mar 2023 · open</span></div>
+            <!-- Phenom-1: 2023 internal, CVPR Jun 2024 (Recursion phenomics FM, internal). -->
+            <div class="track-dot t-d1" style="left: 72%;"><span class="tag">Phenom-1</span><span class="sub">Jun 2024 · internal</span></div>
+            <!-- OpenPhenom-S/16: Nov 2024 (open release of Phenom line). -->
+            <div class="track-dot t-u2 jog-l" style="left: 75%;"><span class="tag">OpenPhenom-S/16</span><span class="sub">Nov 2024 · open</span></div>
+            <!-- Tahoe-100M: Feb 2025 — CC0 (Arc Virtual Cell Atlas). -->
+            <div class="track-dot t-u1 jog-r" style="left: 78%;"><span class="tag">Tahoe-100M</span><span class="sub">Feb 2025 · open</span></div>
           </div>
         </div>
-        <!-- TRACK 2 — Models
-             All verified release dates. Boltz / Chai split into two; Boltz-2
-             corrected from 2026 back to Jun 2025. -->
+
+        <!-- TRACK 2 — Models (13 verified items including Geneformer, scGPT,
+             Evo 2, State, Tahoe-x1). Chai-1 split from Boltz-1; Boltz-2
+             corrected to Jun 2025. -->
         <div class="track-row">
           <div class="track-label">Models</div>
           <div class="track-lane reveal-cascade">
             <!-- AlphaFold2: Jul 2021. -->
-            <div class="track-dot above" style="left: 16%;"><span class="tag">AlphaFold2</span><span class="sub">Jul 2021 · open</span></div>
+            <div class="track-dot t-u1" style="left: 49%;"><span class="tag">AlphaFold2</span><span class="sub">Jul 2021 · open</span></div>
             <!-- ESMFold (Metagenomic Atlas launch): Nov 2022. -->
-            <div class="track-dot below" style="left: 35%;"><span class="tag">ESMFold</span><span class="sub">Nov 2022 · open</span></div>
-            <!-- RFdiffusion (Nature paper): Jul 2023. -->
-            <div class="track-dot above" style="left: 44%;"><span class="tag">RFdiffusion</span><span class="sub">Jul 2023 · open</span></div>
-            <!-- Evo: Feb 2024. -->
-            <div class="track-dot below" style="left: 52%;"><span class="tag">Evo</span><span class="sub">Feb 2024 · open</span></div>
+            <div class="track-dot t-d1 jog-l" style="left: 60%;"><span class="tag">ESMFold</span><span class="sub">Nov 2022 · open</span></div>
+            <!-- Geneformer (single-cell FM, Nature 2023): May 2023. -->
+            <div class="track-dot t-d2 jog-l" style="left: 64%;"><span class="tag">Geneformer</span><span class="sub">May 2023 · open</span></div>
+            <!-- scGPT (single-cell FM, preprint May 2023; Nature Methods 2024). -->
+            <div class="track-dot t-u2 jog-l" style="left: 64%;"><span class="tag">scGPT</span><span class="sub">May 2023 · open</span></div>
+            <!-- RFdiffusion (Nature): Jul 2023. -->
+            <div class="track-dot t-u1 jog-r" style="left: 65%;"><span class="tag">RFdiffusion</span><span class="sub">Jul 2023 · open</span></div>
+            <!-- Evo (Arc DNA/RNA/protein FM): Feb 2024. -->
+            <div class="track-dot t-d1" style="left: 70%;"><span class="tag">Evo</span><span class="sub">Feb 2024 · open</span></div>
             <!-- AlphaFold3 launch: May 2024 (server-limited at launch). -->
-            <div class="track-dot above" style="left: 56%;"><span class="tag">AlphaFold3</span><span class="sub">May 2024 · server</span></div>
-            <!-- Chai-1 (Chai Discovery, open weights): Sep 2024. -->
-            <div class="track-dot below" style="left: 60%;"><span class="tag">Chai-1</span><span class="sub">Sep 2024 · open weights</span></div>
-            <!-- Boltz-1 (MIT, open MIT license): Nov 2024. -->
-            <div class="track-dot above" style="left: 63%;"><span class="tag">Boltz-1</span><span class="sub">Nov 2024 · open</span></div>
-            <!-- Boltz-2 (MIT + Recursion, open MIT license): Jun 2025. -->
-            <div class="track-dot below" style="left: 71%;"><span class="tag">Boltz-2</span><span class="sub">Jun 2025 · open</span></div>
-          </div>
-        </div>
-        <!-- TRACK 3 — Patient data
-             Only verified items shown. Tempus "500 PB", Tempus × Foundation,
-             Project Baseline 2024, and All of Us 1M dropped as unverifiable
-             or aspirational per the reference table. -->
-        <div class="track-row">
-          <div class="track-label">Patient<br>data</div>
-          <div class="track-lane reveal-cascade">
-            <!-- TCGA pan-cancer atlas: 2018 closure, ongoing access. -->
-            <div class="track-dot warm above" style="left: 4%;"><span class="tag">TCGA</span><span class="sub">2018, ongoing</span></div>
-            <!-- All of Us WGS first ~100k: Mar 2022. -->
-            <div class="track-dot warm below" style="left: 25%;"><span class="tag">All of Us WGS</span><span class="sub">Mar 2022 · controlled</span></div>
-            <!-- UK Biobank full 500k WGS: Nov 2023. -->
-            <div class="track-dot warm above" style="left: 49%;"><span class="tag">UK Biobank WGS</span><span class="sub">Nov 2023 · controlled</span></div>
+            <div class="track-dot t-u2" style="left: 72%;"><span class="tag">AlphaFold3</span><span class="sub">May 2024 · server</span></div>
+            <!-- Chai-1 (co-folding, open weights): Sep 2024. -->
+            <div class="track-dot t-d2 jog-r" style="left: 74%;"><span class="tag">Chai-1</span><span class="sub">Sep 2024 · open weights</span></div>
+            <!-- Boltz-1 (MIT): Nov 2024. -->
+            <div class="track-dot t-u1" style="left: 76%;"><span class="tag">Boltz-1</span><span class="sub">Nov 2024 · open</span></div>
+            <!-- Evo 2 (40B params, w/ NVIDIA): Feb 2025. -->
+            <div class="track-dot t-d1 jog-l" style="left: 78%;"><span class="tag">Evo 2</span><span class="sub">Feb 2025 · open</span></div>
+            <!-- Boltz-2 (structure + binding affinity): Jun 2025. -->
+            <div class="track-dot t-u2 jog-l" style="left: 80%;"><span class="tag">Boltz-2</span><span class="sub">Jun 2025 · open</span></div>
+            <!-- State (Arc virtual cell model): Jun 2025. -->
+            <div class="track-dot t-d2 jog-r" style="left: 80%;"><span class="tag">State</span><span class="sub">Jun 2025 · open</span></div>
+            <!-- Tahoe-x1 (3B-param single-cell FM): Oct 2025. -->
+            <div class="track-dot t-u1 jog-r" style="left: 83%;"><span class="tag">Tahoe-x1</span><span class="sub">Oct 2025 · open weights</span></div>
           </div>
         </div>
 
+        <!-- TRACK 3 — Patient & population data (verified, with access types) -->
+        <div class="track-row">
+          <div class="track-label">Patient<br>data</div>
+          <div class="track-lane reveal-cascade">
+            <!-- TCGA Pan-Cancer Atlas: 2018, ongoing — Open + Controlled. -->
+            <div class="track-dot warm t-u1" style="left: 21%;"><span class="tag">TCGA</span><span class="sub">2018, ongoing</span></div>
+            <!-- Genomics England 100,000 Genomes: Dec 2018. -->
+            <div class="track-dot warm t-d1" style="left: 23%;"><span class="tag">Genomics Eng. 100k</span><span class="sub">Dec 2018 · controlled</span></div>
+            <!-- All of Us WGS first ~100k: Mar 2022. -->
+            <div class="track-dot warm t-u1 jog-r" style="left: 47%;"><span class="tag">All of Us WGS</span><span class="sub">Mar 2022 · controlled</span></div>
+            <!-- Tempus multimodal database scale milestone: 2023. -->
+            <div class="track-dot warm t-d1" style="left: 62%;"><span class="tag">Tempus DB</span><span class="sub">2023 · licensable</span></div>
+            <!-- gnomAD v4: Nov 2023 — Open variant-frequency reference. -->
+            <div class="track-dot warm t-u2 jog-l" style="left: 67%;"><span class="tag">gnomAD v4</span><span class="sub">Nov 2023 · open</span></div>
+            <!-- UK Biobank full 500k WGS: Nov 2023. -->
+            <div class="track-dot warm t-u1 jog-r" style="left: 68%;"><span class="tag">UK Biobank WGS</span><span class="sub">Nov 2023 · controlled</span></div>
+            <!-- Tempus × AstraZeneca + Pathos oncology foundation model: Apr 2025. -->
+            <div class="track-dot warm t-d2 jog-l" style="left: 79%;"><span class="tag">Tempus × AZ + Pathos</span><span class="sub">Apr 2025 · licensable</span></div>
+            <!-- Helix Research Network: 2025 (ASHG 2025 disclosure of scale). -->
+            <div class="track-dot warm t-u2 jog-r" style="left: 81%;"><span class="tag">Helix RN</span><span class="sub">2025 · licensable</span></div>
+          </div>
+        </div>
+
+        <!-- TRACK 4 — Reference atlases / multi-omics (new). Green dot accent
+             distinguishes from the three pillars above. -->
+        <div class="track-row">
+          <div class="track-label">Atlases &amp;<br>multi-omics</div>
+          <div class="track-lane reveal-cascade">
+            <!-- 10x Visium (sequencing-based spatial): 2019, commercial. -->
+            <div class="track-dot green t-d1" style="left: 33%;"><span class="tag">10x Visium</span><span class="sub">2019 · commercial</span></div>
+            <!-- UK Biobank metabolomics interim (Nightingale NMR, ~118k): 2021. -->
+            <div class="track-dot green t-u1" style="left: 45%;"><span class="tag">UKB metab. (118k)</span><span class="sub">2021 · controlled</span></div>
+            <!-- Tabula Sapiens v1 (Science): 2022 — Open CC BY. -->
+            <div class="track-dot green t-u2 jog-l" style="left: 55%;"><span class="tag">Tabula Sapiens</span><span class="sub">2022 · open</span></div>
+            <!-- Human Cell Atlas first-draft integrated atlases: 2022 — Open. -->
+            <div class="track-dot green t-d2 jog-r" style="left: 57%;"><span class="tag">Human Cell Atlas</span><span class="sub">2022 · open</span></div>
+            <!-- 10x Xenium (in situ imaging-based spatial): 2023, commercial. -->
+            <div class="track-dot green t-u1" style="left: 62%;"><span class="tag">10x Xenium</span><span class="sub">2023 · commercial</span></div>
+            <!-- CZ CELLxGENE Discover (~90M cells by Oct 2023): 2023 — Open. -->
+            <div class="track-dot green t-d1 jog-r" style="left: 65%;"><span class="tag">CZ CELLxGENE</span><span class="sub">2023 · open</span></div>
+            <!-- UK Biobank proteomics (UKB-PPP Olink, ~54k pilot): late 2023. -->
+            <div class="track-dot green t-u2 jog-r" style="left: 68%;"><span class="tag">UKB-PPP (54k)</span><span class="sub">Nov 2023 · controlled</span></div>
+            <!-- UK Biobank metabolomics full (~500k Nightingale): Nov 2025. -->
+            <div class="track-dot green t-d1" style="left: 84%;"><span class="tag">UKB metab. (500k)</span><span class="sub">Nov 2025 · controlled</span></div>
+          </div>
+        </div>
+
+        <!-- Year axis: extended to 2016-2026 to cover the older Drop-seq /
+             Cell Painting / TCGA / Visium dates. Each year ≈ 8% of lane width. -->
         <div class="tracks-axis">
           <div class="ax-line"></div>
-          <span class="yr-tick" style="left: 9%;"></span>   <span class="yr-label" style="left: 9%;">2021</span>
-          <span class="yr-tick" style="left: 23%;"></span>  <span class="yr-label" style="left: 23%;">2022</span>
-          <span class="yr-tick" style="left: 37%;"></span>  <span class="yr-label" style="left: 37%;">2023</span>
-          <span class="yr-tick" style="left: 51%;"></span>  <span class="yr-label" style="left: 51%;">2024</span>
-          <span class="yr-tick" style="left: 65%;"></span>  <span class="yr-label" style="left: 65%;">2025</span>
-          <span class="yr-tick" style="left: 79%;"></span>  <span class="yr-label current" style="left: 79%;">2026</span>
+          <span class="yr-tick" style="left: 5%;"></span>   <span class="yr-label" style="left: 5%; color: var(--ink-faint);">2016</span>
+          <span class="yr-tick" style="left: 13%;"></span>  <span class="yr-label" style="left: 13%; color: var(--ink-faint);">2017</span>
+          <span class="yr-tick" style="left: 21%;"></span>  <span class="yr-label" style="left: 21%;">2018</span>
+          <span class="yr-tick" style="left: 29%;"></span>  <span class="yr-label" style="left: 29%;">2019</span>
+          <span class="yr-tick" style="left: 37%;"></span>  <span class="yr-label" style="left: 37%; color: var(--ink-faint);">2020</span>
+          <span class="yr-tick" style="left: 45%;"></span>  <span class="yr-label" style="left: 45%;">2021</span>
+          <span class="yr-tick" style="left: 53%;"></span>  <span class="yr-label" style="left: 53%;">2022</span>
+          <span class="yr-tick" style="left: 61%;"></span>  <span class="yr-label" style="left: 61%;">2023</span>
+          <span class="yr-tick" style="left: 69%;"></span>  <span class="yr-label" style="left: 69%;">2024</span>
+          <span class="yr-tick" style="left: 77%;"></span>  <span class="yr-label" style="left: 77%;">2025</span>
+          <span class="yr-tick" style="left: 85%;"></span>  <span class="yr-label current" style="left: 85%;">2026</span>
           <span class="yr-tick" style="left: 93%;"></span>  <span class="yr-label" style="left: 93%; color: var(--ink-faint);">→</span>
         </div>
       </div>
