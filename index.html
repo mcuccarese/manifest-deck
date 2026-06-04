@@ -2024,9 +2024,11 @@
                 </radialGradient>
               </defs>
 
-              <!-- Stage label (top-left). JS rewrites textContent per stage. -->
-              <text class="stage-name" x="30" y="46" font-family="Space Grotesk, sans-serif" font-size="42" font-weight="700" fill="#ffffff">Simulate</text>
-              <text class="stage-dt"   x="30" y="78" font-family="IBM Plex Mono, monospace" font-size="22" letter-spacing="0.4" fill="rgba(255,255,255,0.62)">(&Delta;t = minutes)</text>
+              <!-- Stage label (top-left). JS rewrites textContent per stage.
+                   Pushed to the left edge so the larger stage name doesn't
+                   visually crowd the Hypothesis dot at x=105. -->
+              <text class="stage-name" x="10" y="40" font-family="Space Grotesk, sans-serif" font-size="28" font-weight="700" fill="#ffffff">Simulate</text>
+              <text class="stage-dt"   x="10" y="66" font-family="IBM Plex Mono, monospace" font-size="22" letter-spacing="0.4" fill="rgba(255,255,255,0.62)">(&Delta;t = minutes)</text>
 
               <!-- ARC: lives in the LEFT region of the card (x ≈ 0 to x ≈ 480).
                    Hypothesis → Experiment → 3 Outcomes → 3 Decisions; outcome
@@ -3001,13 +3003,16 @@
     const svg = document.querySelector('#frame-5 .dual-sim-arc');
     if (!svg) return;
 
-    const LOOP = 11.5;
+    // Every named stage gets the same 3-second residence (S1's pacing).
+    // Build durations vary by how much each stage needs to introduce; the
+    // remainder is hold time so the user has equal time to read each stage.
+    const LOOP = 13.0;
     const PH = {
-      S1:   { s: 0.0,  buildE: 2.0,  e: 3.0  },   // Simulate: build 2s, hold 1s
-      S2:   { s: 3.0,  buildE: 4.0,  e: 5.0  },   // Execute:  build 1s, hold 1s
-      S3:   { s: 5.0,  buildE: 6.5,  e: 7.5  },   // Realize:  build 1.5s, hold 1s
-      S4:   { s: 7.5,  buildE: 9.0,  e: 10.5 },   // Decide:   build 1.5s, hold 1.5s
-      FADE: { s: 10.5, e: 11.5 },
+      S1:   { s: 0.0,  buildE: 2.0,  e: 3.0  },   // Simulate: build 2.0s, hold 1.0s
+      S2:   { s: 3.0,  buildE: 4.0,  e: 6.0  },   // Execute:  build 1.0s, hold 2.0s
+      S3:   { s: 6.0,  buildE: 7.5,  e: 9.0  },   // Realize:  build 1.5s, hold 1.5s
+      S4:   { s: 9.0,  buildE: 10.5, e: 12.0 },   // Decide:   build 1.5s, hold 1.5s
+      FADE: { s: 12.0, e: 13.0 },                 // Fade back to S1 start
     };
     const LABEL = {
       S1:   { n: 'Simulate', d: '(Δt = minutes)'            },
@@ -3164,7 +3169,7 @@
 
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       obs.disconnect();
-      tick(9.5);  // mid-S4 hold
+      tick(11.25);  // mid-S4 hold (S4 spans 9.0-12.0; 11.25 is in the hold)
     }
   })();
 </script>
