@@ -2034,15 +2034,17 @@
                    Hypothesis → Experiment → 3 Outcomes → 3 Decisions; outcome
                    rows at y=58 / 118 / 178 with bigger nodes to match the
                    bigger fonts. -->
-              <!-- Hypothesis node (purple, persistent) -->
+              <!-- Hypothesis node (purple, persistent). Inner dot has no inline
+                   opacity so the parent <g>'s opacity (set per-stage by JS)
+                   controls its visibility. -->
               <g class="arc-hyp">
                 <circle cx="105" cy="118" r="28" fill="url(#arc-hyp-glow)" opacity="0"/>
-                <circle class="hyp-dot" cx="105" cy="118" r="15" fill="#a78bfa" stroke="#c4b5fd" stroke-width="1.8" opacity="0"/>
+                <circle class="hyp-dot" cx="105" cy="118" r="15" fill="#a78bfa" stroke="#c4b5fd" stroke-width="1.8"/>
               </g>
               <!-- Experiment node (blue, persistent) -->
               <g class="arc-exp">
                 <circle cx="215" cy="118" r="28" fill="url(#arc-exp-glow)" opacity="0"/>
-                <circle class="exp-dot" cx="215" cy="118" r="15" fill="#60a5fa" stroke="#93c5fd" stroke-width="1.8" opacity="0"/>
+                <circle class="exp-dot" cx="215" cy="118" r="15" fill="#60a5fa" stroke="#93c5fd" stroke-width="1.8"/>
               </g>
 
               <!-- Outcome nodes (3) at x=325, rows y=58 / 118 / 178 -->
@@ -3015,11 +3017,11 @@
       FADE: { s: 12.0, e: 13.0 },                 // Fade back to S1 start
     };
     const LABEL = {
-      S1:   { n: 'Simulate', d: '(Δt = minutes)'            },
-      S2:   { n: 'Execute',  d: '(Δt = experiment latency)' },
-      S3:   { n: 'Realize',  d: '(Δt = experiment time)'    },
-      S4:   { n: 'Decide',   d: '(Δt = 0)'                  },
-      FADE: { n: 'Decide',   d: '(Δt = 0)'                  },
+      S1:   { n: 'Simulate', d: '(Δt = minutes)'      },
+      S2:   { n: 'Execute',  d: '(Δt = exp. latency)' },
+      S3:   { n: 'Realize',  d: '(Δt = exp. time)'    },
+      S4:   { n: 'Decide',   d: '(Δt = 0)'            },
+      FADE: { n: 'Decide',   d: '(Δt = 0)'            },
     };
 
     // Element refs
@@ -3040,6 +3042,7 @@
 
     const easeOut = t => 1 - Math.pow(1 - t, 2);
     const clamp01 = x => Math.max(0, Math.min(1, x));
+    const lerp    = (a, b, t) => a + (b - a) * t;
 
     function tick(t) {
       // Stage detection
@@ -3059,22 +3062,49 @@
       else if (t < PH.FADE.s)      baseO = 1;
       else                         baseO = 1 - easeOut((t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
 
-      // Persistent nodes: hypothesis, experiment, mid outcome, mid decision
-      hypNode.setAttribute('opacity', baseO);
-      expNode.setAttribute('opacity', baseO);
-      outDots[1].setAttribute('opacity', baseO);
-      decGroups[1].setAttribute('opacity', baseO);
+      // Per-node fade-then-solidify factors. Each node starts at FADED
+      // opacity (projected/virtual) and solidifies during the stage that
+      // realizes it. Hypothesis is solid from S1 onwards (the question
+      // we're already holding when we start). The mid Outcome solidifies in
+      // S3 (the realized result); the mid Decision in S4 (the actual call).
+      // Alt outcomes/decisions stay faded through S1+S2 and fade to 0 in
+      // S3 (they were never going to happen given the realized outcome).
+      const FADED = 0.35;
+      const hypFactor = 1.0;
+      let expFactor;
+      if (t < PH.S2.s)            expFactor = FADED;
+      else if (t < PH.S2.buildE)  expFactor = lerp(FADED, 1.0, easeOut((t - PH.S2.s) / (PH.S2.buildE - PH.S2.s)));
+      else                        expFactor = 1.0;
+      let outMidFactor, outAltFactor;
+      if (t < PH.S3.s)            { outMidFactor = FADED; outAltFactor = FADED; }
+      else if (t < PH.S3.buildE)  {
+        const p = easeOut((t - PH.S3.s) / (PH.S3.buildE - PH.S3.s));
+        outMidFactor = lerp(FADED, 1.0, p);
+        outAltFactor = lerp(FADED, 0.0, p);
+      }
+      else                        { outMidFactor = 1.0; outAltFactor = 0; }
+      let decMidFactor;
+      if (t < PH.S4.s)            decMidFactor = FADED;
+      else if (t < PH.S4.buildE)  decMidFactor = lerp(FADED, 1.0, easeOut((t - PH.S4.s) / (PH.S4.buildE - PH.S4.s)));
+      else                        decMidFactor = 1.0;
+      const decAltFactor = outAltFactor;  // alt decisions fade alongside alt outcomes in S3
+
+      hypNode.setAttribute('opacity', baseO * hypFactor);
+      expNode.setAttribute('opacity', baseO * expFactor);
+      outDots[1].setAttribute('opacity', baseO * outMidFactor);
+      outDots[0].setAttribute('opacity', baseO * outAltFactor);
+      outDots[2].setAttribute('opacity', baseO * outAltFactor);
+      decGroups[1].setAttribute('opacity', baseO * decMidFactor);
+      decGroups[0].setAttribute('opacity', baseO * decAltFactor);
+      decGroups[2].setAttribute('opacity', baseO * decAltFactor);
       colLabels.forEach(el => el.setAttribute('opacity', baseO));
 
-      // Alt outcomes/decisions (top + bot): visible until S3 build, then fade.
+      // altO is still used by the alt connector lines (Exp→top/bot Out and
+      // top/bot Out→Dec). They follow the same fade-in / fade-out timing.
       let altO = 0;
       if (t < PH.S1.buildE)        altO = easeOut(t / PH.S1.buildE);
       else if (t < PH.S3.s)        altO = 1;
       else if (t < PH.S3.buildE)   altO = 1 - easeOut((t - PH.S3.s) / (PH.S3.buildE - PH.S3.s));
-      outDots[0].setAttribute('opacity', altO);
-      outDots[2].setAttribute('opacity', altO);
-      decGroups[0].setAttribute('opacity', altO);
-      decGroups[2].setAttribute('opacity', altO);
 
       // Hyp ↔ Exp line: dotted in S1, crossfades to solid in S2 build
       let heD = 0, heS = 0;
