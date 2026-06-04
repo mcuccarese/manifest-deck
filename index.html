@@ -834,6 +834,48 @@
   .twin-tree svg, .twin-chart svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
   /* ============================================================
+     OUTCOMES SANKEY — BOED phase animation
+     ============================================================ */
+  /* Phase strip: each phase label dims by default; .is-active brightens it
+     and the matching arrow that follows. JS toggles .is-active per phase. */
+  .outcomes-sankey .phase                  { fill: rgba(255,255,255,0.20); transition: fill 0.35s ease; }
+  .outcomes-sankey .phase-sep              { fill: rgba(255,255,255,0.15); }
+  .outcomes-sankey .phase.is-active        { fill: var(--accent-hi); }
+  .outcomes-sankey .phase.is-past          { fill: rgba(255,255,255,0.40); }
+
+  /* Bands: default to the dim state used in ENUMERATE; JS bumps opacity per
+     phase via inline style. The fill gradients are defined in <defs>. */
+  .outcomes-sankey .band                   { opacity: 0; transition: opacity 0.5s ease; }
+
+  /* Band labels follow their band's opacity through JS. */
+  .outcomes-sankey .label                  { fill: rgba(255,255,255,0.50); opacity: 0; transition: opacity 0.4s ease, fill 0.4s ease; }
+  .outcomes-sankey .label-advance.is-lit   { fill: var(--accent-hi); }
+  .outcomes-sankey .label-refine.is-lit    { fill: #fbbf24; }
+  .outcomes-sankey .label-kill.is-lit      { fill: rgba(148,163,184,0.85); }
+
+  /* Nodes: TPP starts dim, lights up in SCORE; current pulses in ENUMERATE.
+     JS adds .is-lit / .is-pulsing classes on the wrapper <g>. */
+  .outcomes-sankey .node-glow              { transition: opacity 0.5s ease; }
+  .outcomes-sankey .tpp .node-glow         { opacity: 0.20; }
+  .outcomes-sankey .tpp.is-lit .node-glow  { opacity: 0.95; }
+  .outcomes-sankey .current.is-pulsing .node-glow { animation: current-pulse 1.6s ease-in-out 1; }
+  @keyframes current-pulse {
+    0%, 100% { opacity: 0.85; transform: scale(1); }
+    50%      { opacity: 1.00; transform: scale(1.10); }
+  }
+  /* Pulse needs a transform-origin matching the circle center. */
+  .outcomes-sankey .current .node-glow { transform-origin: 32px 104px; transform-box: fill-box; }
+  .outcomes-sankey .tpp .node-glow     { transform-origin: 440px 42px; transform-box: fill-box; }
+
+  /* Particles are SVG circles JS appends to the .particles group. Their
+     fill + opacity are set inline per frame; this rule just ensures no
+     stroke. */
+  .outcomes-sankey .particles circle       { stroke: none; }
+
+  /* Status line — JS rewrites textContent per phase. */
+  .outcomes-sankey .status                 { transition: fill 0.4s ease; }
+
+  /* ============================================================
      FRAME 03 — MOAT + MODEL — text two-column
      ============================================================ */
   .moat-grid {
@@ -1740,83 +1782,99 @@
         <div class="dual-card sim outcomes reveal-fade" style="transition-delay: 0.30s;">
           <div class="tag">Outcomes simulation</div>
           <div class="twin-tree">
-            <svg viewBox="0 0 360 220" preserveAspectRatio="xMidYMid meet" aria-label="From current to TPP: enumerate candidate experiments and score by expected impact.">
+            <!-- BOED Sankey animation: 8s loop through ENUMERATE → PROJECT →
+                 SCORE → HOLD → FADE. JS in setupOutcomesSankey() drives band
+                 opacities, particle motion, phase highlights, and the status
+                 counter. SVG initial state renders the final SCORE phase so
+                 the card still reads as a static Sankey if JS doesn't run. -->
+            <svg class="outcomes-sankey" viewBox="0 0 480 200" preserveAspectRatio="xMidYMid meet" aria-label="BOED animation: enumerate candidate experiments, project outcome distributions, score by expected belief-shift, schedule top-K.">
               <defs>
                 <radialGradient id="current-glow" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stop-color="#fb923c" stop-opacity="0.8"/>
                   <stop offset="100%" stop-color="#fb923c" stop-opacity="0"/>
                 </radialGradient>
                 <radialGradient id="tpp-glow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.8"/>
+                  <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.95"/>
                   <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
                 </radialGradient>
+                <linearGradient id="band-advance-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"  stop-color="#06b6d4" stop-opacity="0.15"/>
+                  <stop offset="60%" stop-color="#06b6d4" stop-opacity="0.55"/>
+                  <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.80"/>
+                </linearGradient>
+                <linearGradient id="band-refine-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"  stop-color="#fbbf24" stop-opacity="0.15"/>
+                  <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.55"/>
+                </linearGradient>
+                <linearGradient id="band-kill-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%"  stop-color="#94a3b8" stop-opacity="0.12"/>
+                  <stop offset="100%" stop-color="#94a3b8" stop-opacity="0.40"/>
+                </linearGradient>
+                <filter id="particle-glow" x="-100%" y="-100%" width="300%" height="300%">
+                  <feGaussianBlur stdDeviation="1.4" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
               </defs>
 
-              <!-- current node (left, warm) -->
-              <circle cx="30" cy="110" r="26" fill="url(#current-glow)"/>
-              <rect x="6" y="98" width="48" height="24" rx="6" fill="#1e293b" stroke="#fb923c" stroke-width="1.4"/>
-              <text x="30" y="114" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600" fill="#ffffff">current</text>
-
-              <!-- TPP node (right, cyan) -->
-              <circle cx="320" cy="110" r="26" fill="url(#tpp-glow)"/>
-              <rect x="298" y="98" width="44" height="24" rx="6" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.4"/>
-              <text x="320" y="114" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="11" font-weight="600" fill="#ffffff">TPP</text>
-
-              <!-- Edges between candidates -->
-              <g stroke="#475569" stroke-width="0.8" fill="none" opacity="0.45">
-                <line x1="58" y1="110" x2="100" y2="55"/>
-                <line x1="58" y1="110" x2="100" y2="85"/>
-                <line x1="58" y1="110" x2="100" y2="115"/>
-                <line x1="58" y1="110" x2="100" y2="145"/>
-                <line x1="58" y1="110" x2="100" y2="175"/>
-                <line x1="100" y1="55"  x2="170" y2="65"/>
-                <line x1="100" y1="85"  x2="170" y2="95"/>
-                <line x1="100" y1="85"  x2="170" y2="65"/>
-                <line x1="100" y1="115" x2="170" y2="125"/>
-                <line x1="100" y1="145" x2="170" y2="155"/>
-                <line x1="100" y1="145" x2="170" y2="125"/>
-                <line x1="100" y1="175" x2="170" y2="185"/>
-                <line x1="100" y1="175" x2="170" y2="155"/>
-                <line x1="170" y1="65"  x2="240" y2="80"/>
-                <line x1="170" y1="95"  x2="240" y2="110"/>
-                <line x1="170" y1="125" x2="240" y2="140"/>
-                <line x1="170" y1="155" x2="240" y2="170"/>
-                <line x1="170" y1="185" x2="240" y2="170"/>
-                <line x1="170" y1="155" x2="240" y2="140"/>
-                <line x1="240" y1="80"  x2="298" y2="110"/>
-                <line x1="240" y1="110" x2="298" y2="110"/>
-                <line x1="240" y1="140" x2="298" y2="110"/>
-                <line x1="240" y1="170" x2="298" y2="110"/>
+              <!-- Phase strip across the top -->
+              <g class="phase-strip" font-family="IBM Plex Mono, monospace" font-size="7.5" letter-spacing="1.6" text-anchor="middle">
+                <text class="phase phase-enumerate" x="90"  y="14">ENUMERATE</text>
+                <text class="phase-sep" x="160" y="14">·</text>
+                <text class="phase phase-project"   x="230" y="14">PROJECT</text>
+                <text class="phase-sep" x="300" y="14">·</text>
+                <text class="phase phase-score"     x="370" y="14">SCORE</text>
               </g>
 
-              <!-- Final colored candidates: advance (green) vs kill / pivot (orange) -->
-              <g>
-                <circle cx="100" cy="55"  r="5" fill="#16a34a"/>
-                <circle cx="100" cy="85"  r="5" fill="#16a34a" opacity="0.6"/>
-                <circle cx="100" cy="115" r="5" fill="#fb923c"/>
-                <circle cx="100" cy="145" r="5" fill="#16a34a" opacity="0.65"/>
-                <circle cx="100" cy="175" r="5" fill="#fb923c" opacity="0.85"/>
-                <circle cx="170" cy="65"  r="5" fill="#16a34a"/>
-                <circle cx="170" cy="95"  r="5" fill="#fb923c" opacity="0.7"/>
-                <circle cx="170" cy="125" r="5" fill="#16a34a"/>
-                <circle cx="170" cy="155" r="5" fill="#fb923c" opacity="0.85"/>
-                <circle cx="170" cy="185" r="5" fill="#16a34a" opacity="0.6"/>
-                <circle cx="240" cy="80"  r="6" fill="#16a34a"/>
-                <circle cx="240" cy="110" r="6" fill="#16a34a" opacity="0.85"/>
-                <circle cx="240" cy="140" r="6" fill="#fb923c" opacity="0.85"/>
-                <circle cx="240" cy="170" r="6" fill="#16a34a" opacity="0.7"/>
+              <!-- Sankey bands. d-attrs encode source (current edge x≈58) and
+                   3 destinations: advance(y=55), refine(y=100), kill(y=145).
+                   All originate from the current node strip y=92..108. -->
+              <g class="bands">
+                <!-- advance band: top, cyan -->
+                <path class="band band-advance" fill="url(#band-advance-grad)"
+                      d="M 58 92 C 250 92 250 42 410 42 L 410 68 C 250 68 250 100 58 100 Z"/>
+                <!-- refine band: middle, gold -->
+                <path class="band band-refine"  fill="url(#band-refine-grad)"
+                      d="M 58 100 C 250 100 250 86 410 86 L 410 114 C 250 114 250 108 58 108 Z"/>
+                <!-- kill band: bottom, slate -->
+                <path class="band band-kill"    fill="url(#band-kill-grad)"
+                      d="M 58 108 C 250 108 250 130 410 130 L 410 158 C 250 158 250 116 58 116 Z"/>
               </g>
 
-              <!-- Legend -->
-              <g font-family="IBM Plex Mono, monospace" font-size="8.5" letter-spacing="1">
-                <circle cx="22"  cy="200" r="3.5" fill="#16a34a"/>
-                <text x="32" y="203" fill="#16a34a">advance</text>
-                <circle cx="100" cy="200" r="3.5" fill="#fb923c"/>
-                <text x="110" y="203" fill="#fb923c">kill / pivot</text>
+              <!-- Centerline paths (invisible) — particles ride these via getPointAtLength. -->
+              <g class="band-centers" fill="none" stroke="none">
+                <path class="center-advance" d="M 58 96  C 250 96  250 55  410 55"/>
+                <path class="center-refine"  d="M 58 104 C 250 104 250 100 410 100"/>
+                <path class="center-kill"    d="M 58 112 C 250 112 250 144 410 144"/>
               </g>
+
+              <!-- Band labels (right side of each band) -->
+              <g class="band-labels" font-family="IBM Plex Mono, monospace" font-size="8" letter-spacing="1.2" text-anchor="start">
+                <text class="label label-advance" x="416" y="46">advance</text>
+                <text class="label label-refine"  x="416" y="104">refine</text>
+                <text class="label label-kill"    x="416" y="148">kill</text>
+              </g>
+
+              <!-- TPP node (right) — lit during SCORE phase -->
+              <g class="node tpp">
+                <circle class="node-glow tpp-glow" cx="440" cy="42" r="22" fill="url(#tpp-glow)"/>
+                <rect x="418" y="32" width="44" height="22" rx="6" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.4"/>
+                <text x="440" y="47" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="10" font-weight="600" fill="#ffffff">TPP</text>
+              </g>
+
+              <!-- Current node (left) — pulses during ENUMERATE phase -->
+              <g class="node current">
+                <circle class="node-glow current-glow" cx="32" cy="104" r="24" fill="url(#current-glow)"/>
+                <rect x="8" y="92" width="48" height="24" rx="6" fill="#1e293b" stroke="#fb923c" stroke-width="1.4"/>
+                <text x="32" y="108" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="10.5" font-weight="600" fill="#ffffff">current</text>
+              </g>
+
+              <!-- Particle layer — JS appends ~36 circles here -->
+              <g class="particles" filter="url(#particle-glow)"></g>
+
+              <!-- Status line (bottom) -->
+              <text class="status" x="240" y="188" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8.5" letter-spacing="1.4" fill="rgba(255,255,255,0.50)">candidates per cycle &middot; top-K scheduled</text>
             </svg>
           </div>
-          <p>Every candidate experiment is projected across the program&rsquo;s belief network and scored by expected impact on TPP.</p>
         </div>
 
         <!-- RIGHT (full height): Fusion — the decision-time distribution.
@@ -1878,7 +1936,7 @@
 
             </svg>
           </div>
-          <p>The digital twin evaluates latency and cost for each candidate. Outcomes ranks them by expected impact. Same loop, decisions arrive sooner.</p>
+          <p><strong style="color: #ffffff;">Bayesian Optimal Experimental Design</strong>, at portfolio scale. For every candidate we project the outcome distribution and score by <span style="color: var(--accent-hi); font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em;">E[&Delta;P(TPP)] / E[T]</span> &mdash; expected belief-shift on the program target, per unit time. Hundreds enumerated each cycle; the highest-scoring handful run.</p>
         </div>
 
       </div>
@@ -2171,6 +2229,269 @@
       });
     }, { threshold: [0.3] });
     if (frame4) obs.observe(frame4);
+  })();
+
+  // ============================================================
+  // 3. Outcomes Sankey — BOED phase animation (Frame 5)
+  //    8s loop: ENUMERATE → PROJECT → SCORE → HOLD → FADE.
+  //    Particles ride the centerline of their chosen band via
+  //    SVGGeometryElement.getPointAtLength. The SVG ships with a
+  //    static "final SCORE phase" layout so the card still reads
+  //    if JS doesn't run.
+  // ============================================================
+  (function setupOutcomesSankey() {
+    const svg = document.querySelector('#frame-5 .outcomes-sankey');
+    if (!svg) return;
+
+    // ---- timing (seconds) ----
+    const LOOP = 8.0;
+    const PH = {
+      ENUM:    { s: 0.0, e: 1.8 },
+      PROJECT: { s: 1.8, e: 4.0 },
+      SCORE:   { s: 4.0, e: 6.0 },
+      HOLD:    { s: 6.0, e: 7.5 },
+      FADE:    { s: 7.5, e: 8.0 },
+    };
+
+    // ---- element refs ----
+    const phaseEnum    = svg.querySelector('.phase-enumerate');
+    const phaseProject = svg.querySelector('.phase-project');
+    const phaseScore   = svg.querySelector('.phase-score');
+    const bandAdvance  = svg.querySelector('.band-advance');
+    const bandRefine   = svg.querySelector('.band-refine');
+    const bandKill     = svg.querySelector('.band-kill');
+    const labAdvance   = svg.querySelector('.label-advance');
+    const labRefine    = svg.querySelector('.label-refine');
+    const labKill      = svg.querySelector('.label-kill');
+    const centerAdv    = svg.querySelector('.center-advance');
+    const centerRef    = svg.querySelector('.center-refine');
+    const centerKill   = svg.querySelector('.center-kill');
+    const tppNode      = svg.querySelector('.node.tpp');
+    const currentNode  = svg.querySelector('.node.current');
+    const particleHost = svg.querySelector('.particles');
+    const statusText   = svg.querySelector('.status');
+
+    // ---- particles ----
+    // Pool of particles; each cycles independently with its own emit time
+    // and target band. Total ~36 over the loop ≈ "60 candidates" in copy.
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const PARTICLE_COUNT = 36;
+    const BAND_WEIGHTS = { advance: 0.20, refine: 0.55, kill: 0.25 };
+    const BAND_COLOR = {
+      advance: 'rgba(6, 182, 212, 0.95)',
+      refine:  'rgba(251, 191, 36, 0.85)',
+      kill:    'rgba(148, 163, 184, 0.70)',
+    };
+    const centerByBand = {
+      advance: centerAdv, refine: centerRef, kill: centerKill,
+    };
+
+    function pickBand() {
+      const r = Math.random();
+      if (r < BAND_WEIGHTS.advance) return 'advance';
+      if (r < BAND_WEIGHTS.advance + BAND_WEIGHTS.refine) return 'refine';
+      return 'kill';
+    }
+
+    const particles = [];
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const c = document.createElementNS(SVG_NS, 'circle');
+      c.setAttribute('r', '1.6');
+      c.setAttribute('cx', '32');
+      c.setAttribute('cy', '104');
+      c.setAttribute('fill', BAND_COLOR.refine);
+      c.setAttribute('opacity', '0');
+      particleHost.appendChild(c);
+      particles.push({
+        el: c,
+        // Stagger emit times across the 4s of ENUMERATE+PROJECT so
+        // particles are continuously visible in the band region.
+        emit: (i / PARTICLE_COUNT) * 4.0,
+        travel: 1.8 + Math.random() * 0.6, // seconds in flight
+        band: pickBand(),
+        jitter: (Math.random() - 0.5) * 6, // perpendicular offset px
+      });
+    }
+
+    // Pre-cache centerline lengths so we don't query getTotalLength every frame.
+    const centerLen = {
+      advance: centerAdv.getTotalLength(),
+      refine:  centerRef.getTotalLength(),
+      kill:    centerKill.getTotalLength(),
+    };
+
+    // ---- easing ----
+    const easeOut  = (t) => 1 - Math.pow(1 - t, 2);
+    const easeInOut = (t) => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+    const clamp01 = (x) => Math.max(0, Math.min(1, x));
+
+    // ---- phase resolver ----
+    function phaseAt(t) {
+      if (t < PH.ENUM.e)    return { name: 'enum',    p: t / PH.ENUM.e };
+      if (t < PH.PROJECT.e) return { name: 'project', p: (t - PH.PROJECT.s) / (PH.PROJECT.e - PH.PROJECT.s) };
+      if (t < PH.SCORE.e)   return { name: 'score',   p: (t - PH.SCORE.s)   / (PH.SCORE.e - PH.SCORE.s) };
+      if (t < PH.HOLD.e)    return { name: 'hold',    p: (t - PH.HOLD.s)    / (PH.HOLD.e - PH.HOLD.s) };
+      return                       { name: 'fade',    p: (t - PH.FADE.s)    / (PH.FADE.e - PH.FADE.s) };
+    }
+
+    // ---- per-element drivers ----
+    function updatePhaseStrip(phase) {
+      [phaseEnum, phaseProject, phaseScore].forEach(el => {
+        el.classList.remove('is-active', 'is-past');
+      });
+      if (phase === 'enum') {
+        phaseEnum.classList.add('is-active');
+      } else if (phase === 'project') {
+        phaseEnum.classList.add('is-past');
+        phaseProject.classList.add('is-active');
+      } else { // score / hold / fade
+        phaseEnum.classList.add('is-past');
+        phaseProject.classList.add('is-past');
+        phaseScore.classList.add('is-active');
+      }
+    }
+
+    function updateBands(t) {
+      // ENUMERATE: bands invisible.
+      // PROJECT:   all 3 fade in to base opacity.
+      // SCORE:    advance brightens (1.0), refine + kill dim (0.18).
+      // HOLD:     hold SCORE state.
+      // FADE:     all fade to 0 over 0.5s.
+      let oAdv = 0, oRef = 0, oKill = 0;
+      if (t >= PH.PROJECT.s && t < PH.SCORE.s) {
+        const p = easeOut((t - PH.PROJECT.s) / (PH.PROJECT.e - PH.PROJECT.s));
+        oAdv = 0.55 * p; oRef = 0.55 * p; oKill = 0.55 * p;
+      } else if (t >= PH.SCORE.s && t < PH.HOLD.e) {
+        const p = (t < PH.SCORE.e) ? easeInOut((t - PH.SCORE.s) / (PH.SCORE.e - PH.SCORE.s)) : 1;
+        oAdv  = 0.55 + (1.00 - 0.55) * p;
+        oRef  = 0.55 + (0.18 - 0.55) * p;
+        oKill = 0.55 + (0.18 - 0.55) * p;
+      } else if (t >= PH.FADE.s) {
+        const p = clamp01((t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
+        oAdv = 1.00 * (1 - p); oRef = 0.18 * (1 - p); oKill = 0.18 * (1 - p);
+      }
+      bandAdvance.style.opacity = oAdv;
+      bandRefine.style.opacity  = oRef;
+      bandKill.style.opacity    = oKill;
+      // Labels follow band opacities. Advance label gets the "lit" treatment in SCORE+.
+      labAdvance.style.opacity = oAdv;
+      labRefine.style.opacity  = oRef;
+      labKill.style.opacity    = oKill;
+      labAdvance.classList.toggle('is-lit', t >= PH.SCORE.s && t < PH.FADE.s);
+      labRefine.classList.toggle('is-lit',  t >= PH.PROJECT.s && t < PH.SCORE.s);
+      labKill.classList.toggle('is-lit',    t >= PH.PROJECT.s && t < PH.SCORE.s);
+    }
+
+    function updateNodes(t) {
+      // TPP lights up at start of SCORE.
+      tppNode.classList.toggle('is-lit', t >= PH.SCORE.s && t < PH.FADE.s);
+      // Current pulses ONCE at the start of ENUMERATE (handled by adding/
+      // removing .is-pulsing class). Trigger when t < 0.2 once per loop.
+      if (t < 0.2 && !currentNode.classList.contains('is-pulsing')) {
+        currentNode.classList.add('is-pulsing');
+      } else if (t > 1.8 && currentNode.classList.contains('is-pulsing')) {
+        currentNode.classList.remove('is-pulsing');
+      }
+    }
+
+    function updateParticles(t) {
+      for (const p of particles) {
+        const localT = t - p.emit;
+        if (localT < 0 || localT > p.travel + 0.4) {
+          p.el.setAttribute('opacity', '0');
+          continue;
+        }
+        const progress = clamp01(localT / p.travel);
+        // Don't reveal until PROJECT begins (band exists by then).
+        // Particles emitted during ENUMERATE travel along refine centerline
+        // (visually "spraying out") and get reclassified when bands appear.
+        const center = centerByBand[p.band];
+        const pt = center.getPointAtLength(progress * centerLen[p.band]);
+        // Add a small perpendicular jitter so the band has visible width.
+        // For simplicity, jitter only in y.
+        const x = pt.x;
+        const y = pt.y + p.jitter * (1 - progress * 0.6); // jitter narrows toward target
+        p.el.setAttribute('cx', x);
+        p.el.setAttribute('cy', y);
+        // Opacity: ramp up at emit, hold, fade at travel-end.
+        let op;
+        if (localT < 0.25) op = localT / 0.25;
+        else if (localT > p.travel - 0.3) op = clamp01((p.travel - localT) / 0.3);
+        else op = 1;
+        // In SCORE+, advance particles brighten, others dim.
+        if (t >= PH.SCORE.s && t < PH.FADE.s) {
+          op *= (p.band === 'advance') ? 1.0 : 0.30;
+        }
+        // In FADE, everything dies fast.
+        if (t >= PH.FADE.s) op *= clamp01(1 - (t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
+        p.el.setAttribute('opacity', op);
+        p.el.setAttribute('fill', BAND_COLOR[p.band]);
+      }
+    }
+
+    function updateStatus(t) {
+      let txt;
+      if (t < PH.ENUM.e) {
+        const n = Math.floor((t / PH.ENUM.e) * 60);
+        txt = `enumerating · ${n} candidates`;
+      } else if (t < PH.PROJECT.e) {
+        txt = `60 candidates · projecting outcome distributions`;
+      } else if (t < PH.SCORE.e) {
+        txt = `scoring · E[ΔP(TPP)] / E[T]`;
+      } else if (t < PH.HOLD.e) {
+        txt = `3 scheduled · max expected belief-shift`;
+      } else {
+        txt = `3 scheduled · max expected belief-shift`;
+      }
+      if (statusText.textContent !== txt) statusText.textContent = txt;
+    }
+
+    // ---- main loop ----
+    let raf = null;
+    let startMs = null;
+    function tick(ms) {
+      if (startMs == null) startMs = ms;
+      const t = ((ms - startMs) / 1000) % LOOP;
+      const ph = phaseAt(t);
+      updatePhaseStrip(ph.name === 'hold' || ph.name === 'fade' ? 'score' : ph.name);
+      updateBands(t);
+      updateNodes(t);
+      updateParticles(t);
+      updateStatus(t);
+      raf = requestAnimationFrame(tick);
+    }
+
+    // Gate animation on frame-5 visibility — no need to burn CPU when
+    // frame-5 isn't on screen. IntersectionObserver gives us
+    // start/stop semantics.
+    const frame5 = document.getElementById('frame-5');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.25) {
+          if (raf == null) {
+            startMs = null;
+            raf = requestAnimationFrame(tick);
+          }
+        } else {
+          if (raf != null) { cancelAnimationFrame(raf); raf = null; }
+        }
+      });
+    }, { threshold: [0.25] });
+    obs.observe(frame5);
+
+    // Respect prefers-reduced-motion: skip the animation entirely and just
+    // render the static SCORE state (bands at final opacities, status set).
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      obs.disconnect();
+      bandAdvance.style.opacity = 1.00;
+      bandRefine.style.opacity  = 0.18;
+      bandKill.style.opacity    = 0.18;
+      labAdvance.style.opacity = 1; labAdvance.classList.add('is-lit');
+      labRefine.style.opacity  = 0.18;
+      labKill.style.opacity    = 0.18;
+      tppNode.classList.add('is-lit');
+      statusText.textContent = '3 scheduled · max expected belief-shift';
+    }
   })();
 </script>
 
