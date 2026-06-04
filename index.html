@@ -258,84 +258,62 @@
   /* ============================================================
      FRAME 01 — GOLDEN AGE — three horizontal timeline tracks
      ============================================================ */
-  /* Frame 1 is taller than one viewport (4 lanes × 200px). Drop sticky on
-     just this one frame so the user scrolls through it normally; sticky
-     cover-scroll resumes from Frame 2. */
-  #frame-1 {
-    position: relative;
-    min-height: auto;
-  }
-
   .tracks {
     position: relative;
-    margin-top: 28px;
-    padding: 0 8px 60px;
+    margin-top: 18px;
+    padding: 0 8px 30px;
   }
-  /* Small textual context above the tracks listing enabling-tech
-     inflection points (2015-2017 — too dense to chart as their own
-     track without overwhelming the year axis). */
-  .tracks-prelude {
-    margin: 0 0 16px;
-    padding: 12px 18px;
-    background: var(--surface);
-    border-left: 2px solid var(--ink-faint);
-    border-radius: 0 8px 8px 0;
-    font-family: var(--body);
-    font-size: 13px;
-    color: var(--ink-muted);
-    line-height: 1.55;
-  }
-  .tracks-prelude .tp-tag {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--ink-faint);
-    margin-right: 8px;
-    font-weight: 600;
-  }
-  .tracks-prelude strong {
-    color: var(--ink-soft);
-    font-weight: 600;
-  }
+  /* Frame 1 fits 4 tracks + axis + headline + lede in one viewport.
+     The chart is the focus; trim heading typography accordingly. */
+  #frame-1 .frame-inner { padding: 48px 56px 28px; }
+  #frame-1 .frame-headline { font-size: 38px; line-height: 1.08; margin: 0 0 10px; max-width: none; }
+  #frame-1 .frame-lede { font-size: 16px; line-height: 1.5; max-width: none; }
+  #frame-1 .frame-eyebrow { margin: 0 0 10px; }
   .track-row {
     position: relative;
     display: grid;
-    grid-template-columns: 160px 1fr;
+    grid-template-columns: 130px 1fr;
     align-items: center;
-    gap: 24px;
-    padding: 6px 0 12px;
+    gap: 18px;
+    padding: 2px 0 4px;
     border-bottom: 1px dashed var(--rule);
   }
   .track-row:last-of-type { border-bottom: none; }
   .track-label {
     font-family: var(--display);
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 600;
     color: var(--ink);
     letter-spacing: -0.008em;
     text-align: right;
-    padding-right: 18px;
+    padding-right: 14px;
     border-right: 1.5px solid var(--rule-strong);
     align-self: center;
   }
   .track-lane {
     position: relative;
-    height: 260px;
+    height: 160px;
   }
   .track-dot {
     position: absolute;
     top: 50%;
-    margin-top: -7px;
-    width: 14px; height: 14px;
+    margin-top: -5px;
+    width: 10px; height: 10px;
     border-radius: 50%;
     background: #ffffff;
-    border: 2px solid var(--accent);
-    box-shadow: 0 0 0 4px var(--accent-soft);
+    border: 1.8px solid var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
   }
-  .track-dot.warm  { border-color: var(--warm);  box-shadow: 0 0 0 4px var(--warm-soft); }
-  .track-dot.green { border-color: #16a34a;      box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.10); }
-  .track-dot.muted { border-color: var(--ink-faint); box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.10); }
+  .track-dot.warm  { border-color: var(--warm);  box-shadow: 0 0 0 3px var(--warm-soft); }
+  .track-dot.green { border-color: #16a34a;      box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.10); }
+  .track-dot.muted { border-color: var(--ink-faint); box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.10); }
+  /* Methods / tools: dashed border to differentiate from data/model releases. */
+  .track-dot.method {
+    border-color: var(--ink-faint);
+    border-style: dashed;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.10);
+  }
+  .track-dot.method.green { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.10); }
 
   /* Spotfire-style leader: vertical stem (::before) plus optional horizontal
      jog (::after). Tier classes (t-u1/t-u2/t-d1/t-d2) set stem length and
@@ -359,14 +337,14 @@
   }
   /* Tier 1 above (close above dot) */
   .track-dot.above::before,
-  .track-dot.t-u1::before { bottom: 14px; height: 32px; }
+  .track-dot.t-u1::before { bottom: 10px; height: 20px; }
   /* Tier 2 above (far above dot) */
-  .track-dot.t-u2::before { bottom: 14px; height: 82px; }
+  .track-dot.t-u2::before { bottom: 10px; height: 50px; }
   /* Tier 1 below */
   .track-dot.below::before,
-  .track-dot.t-d1::before { top: 14px; height: 32px; }
+  .track-dot.t-d1::before { top: 10px; height: 20px; }
   /* Tier 2 below */
-  .track-dot.t-d2::before { top: 14px; height: 82px; }
+  .track-dot.t-d2::before { top: 10px; height: 50px; }
 
   /* Label positioning — base (centered on dot) */
   .track-dot .tag {
@@ -375,10 +353,11 @@
     transform: translateX(-50%);
     white-space: nowrap;
     font-family: var(--display);
-    font-size: 12.5px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--ink);
     letter-spacing: -0.005em;
+    line-height: 1;
   }
   .track-dot .sub {
     position: absolute;
@@ -386,55 +365,70 @@
     transform: translateX(-50%);
     white-space: nowrap;
     font-family: var(--mono);
-    font-size: 10px;
+    font-size: 9px;
     color: var(--ink-muted);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
+    line-height: 1;
   }
-  /* Tier Y positions — tier 2 sits far above/below tier 1 so dense
-     clusters can pack labels into 4 visual rows without collisions. */
-  .track-dot.above .tag, .track-dot.t-u1 .tag { top: -65px; }
-  .track-dot.above .sub, .track-dot.t-u1 .sub { top: -50px; }
-  .track-dot.t-u2  .tag { top: -115px; }
-  .track-dot.t-u2  .sub { top: -100px; }
-  .track-dot.below .tag, .track-dot.t-d1 .tag { top: 50px; }
-  .track-dot.below .sub, .track-dot.t-d1 .sub { top: 65px; }
-  .track-dot.t-d2  .tag { top: 100px; }
-  .track-dot.t-d2  .sub { top: 115px; }
+  /* Tier Y positions — 4 tiers fit in a compact 160px lane. */
+  .track-dot.above .tag, .track-dot.t-u1 .tag { top: -42px; }
+  .track-dot.above .sub, .track-dot.t-u1 .sub { top: -30px; }
+  .track-dot.t-u2  .tag { top: -72px; }
+  .track-dot.t-u2  .sub { top: -60px; }
+  .track-dot.below .tag, .track-dot.t-d1 .tag { top: 30px; }
+  .track-dot.below .sub, .track-dot.t-d1 .sub { top: 42px; }
+  .track-dot.t-d2  .tag { top: 60px; }
+  .track-dot.t-d2  .sub { top: 72px; }
 
   /* Horizontal jog: shifts label sideways, adds a short horizontal
-     connector at the top of the vertical stem. */
+     connector at the top of the vertical stem. Magnitudes scaled to the
+     compact lane. */
   .track-dot.jog-l .tag,
-  .track-dot.jog-l .sub { transform: translateX(calc(-50% - 32px)); }
+  .track-dot.jog-l .sub { transform: translateX(calc(-50% - 28px)); }
   .track-dot.jog-r .tag,
-  .track-dot.jog-r .sub { transform: translateX(calc(-50% + 32px)); }
+  .track-dot.jog-r .sub { transform: translateX(calc(-50% + 28px)); }
   .track-dot.jog-ll .tag,
-  .track-dot.jog-ll .sub { transform: translateX(calc(-50% - 60px)); }
+  .track-dot.jog-ll .sub { transform: translateX(calc(-50% - 56px)); }
   .track-dot.jog-rr .tag,
-  .track-dot.jog-rr .sub { transform: translateX(calc(-50% + 60px)); }
+  .track-dot.jog-rr .sub { transform: translateX(calc(-50% + 56px)); }
+  .track-dot.jog-lll .tag,
+  .track-dot.jog-lll .sub { transform: translateX(calc(-50% - 84px)); }
+  .track-dot.jog-rrr .tag,
+  .track-dot.jog-rrr .sub { transform: translateX(calc(-50% + 84px)); }
 
   /* Horizontal connector segment (display + width) */
   .track-dot.jog-l::after,
-  .track-dot.jog-r::after  { display: block; width: 32px; }
+  .track-dot.jog-r::after  { display: block; width: 28px; }
   .track-dot.jog-ll::after,
-  .track-dot.jog-rr::after { display: block; width: 60px; }
+  .track-dot.jog-rr::after { display: block; width: 56px; }
+  .track-dot.jog-lll::after,
+  .track-dot.jog-rrr::after { display: block; width: 84px; }
   .track-dot.jog-l::after,
-  .track-dot.jog-ll::after { right: 50%; left: auto; }
+  .track-dot.jog-ll::after,
+  .track-dot.jog-lll::after { right: 50%; left: auto; }
   .track-dot.jog-r::after,
-  .track-dot.jog-rr::after { left: 50%; }
+  .track-dot.jog-rr::after,
+  .track-dot.jog-rrr::after { left: 50%; }
 
   /* Vertical position of horizontal connector — at end of vertical stem */
   .track-dot.above.jog-l::after, .track-dot.t-u1.jog-l::after,
   .track-dot.above.jog-r::after, .track-dot.t-u1.jog-r::after,
   .track-dot.above.jog-ll::after, .track-dot.t-u1.jog-ll::after,
-  .track-dot.above.jog-rr::after, .track-dot.t-u1.jog-rr::after  { bottom: 46px; }
+  .track-dot.above.jog-rr::after, .track-dot.t-u1.jog-rr::after,
+  .track-dot.above.jog-lll::after, .track-dot.t-u1.jog-lll::after,
+  .track-dot.above.jog-rrr::after, .track-dot.t-u1.jog-rrr::after  { bottom: 30px; }
   .track-dot.t-u2.jog-l::after,  .track-dot.t-u2.jog-r::after,
-  .track-dot.t-u2.jog-ll::after, .track-dot.t-u2.jog-rr::after   { bottom: 96px; }
+  .track-dot.t-u2.jog-ll::after, .track-dot.t-u2.jog-rr::after,
+  .track-dot.t-u2.jog-lll::after, .track-dot.t-u2.jog-rrr::after  { bottom: 60px; }
   .track-dot.below.jog-l::after, .track-dot.t-d1.jog-l::after,
   .track-dot.below.jog-r::after, .track-dot.t-d1.jog-r::after,
   .track-dot.below.jog-ll::after, .track-dot.t-d1.jog-ll::after,
-  .track-dot.below.jog-rr::after, .track-dot.t-d1.jog-rr::after  { top: 46px; }
+  .track-dot.below.jog-rr::after, .track-dot.t-d1.jog-rr::after,
+  .track-dot.below.jog-lll::after, .track-dot.t-d1.jog-lll::after,
+  .track-dot.below.jog-rrr::after, .track-dot.t-d1.jog-rrr::after { top: 30px; }
   .track-dot.t-d2.jog-l::after,  .track-dot.t-d2.jog-r::after,
-  .track-dot.t-d2.jog-ll::after, .track-dot.t-d2.jog-rr::after   { top: 96px; }
+  .track-dot.t-d2.jog-ll::after, .track-dot.t-d2.jog-rr::after,
+  .track-dot.t-d2.jog-lll::after, .track-dot.t-d2.jog-rrr::after  { top: 60px; }
   /* Year axis at the bottom of the tracks block */
   .tracks-axis {
     position: relative;
@@ -1295,22 +1289,20 @@
 
       <div class="tracks reveal-up">
 
-        <!-- ENABLING TECH CONTEXT NOTE — five method inflection points from
-             2015-2017 that made everything below possible. Too dense to chart
-             as their own track without distorting the year axis. -->
-        <p class="tracks-prelude">
-          <span class="tp-tag">2015&ndash;2017 · method foundations</span>
-          <strong>Droplet scRNA-seq</strong> (Drop-seq, 10x Chromium &middot; 2015&ndash;2016),
-          <strong>Cell Painting</strong> (2016),
-          <strong>Spatial transcriptomics</strong> (2016),
-          <strong>Perturb-seq</strong> (Dixit, Adamson 2016), and the
-          <strong>Transformer</strong> (Jun 2017) seeded the data and model layers below.
-        </p>
-
-        <!-- TRACK 1 — Scaled perturbation (verified, with access types) -->
+        <!-- TRACK 1 — Scaled perturbation. First four items are enabling
+             methods/tools (dashed-border dots) — Drop-seq, Cell Painting,
+             10x Chromium, Perturb-seq method. Then the released data. -->
         <div class="track-row">
           <div class="track-label">Scaled<br>perturbation</div>
           <div class="track-lane reveal-cascade">
+            <!-- Drop-seq method (May 2015): pre-axis. -->
+            <div class="track-dot method t-d1" style="left: 2%;"><span class="tag">Drop-seq</span><span class="sub">May 2015 · method</span></div>
+            <!-- Cell Painting protocol (Bray et al., 2016). -->
+            <div class="track-dot method t-u1" style="left: 9%;"><span class="tag">Cell Painting</span><span class="sub">2016 · method</span></div>
+            <!-- 10x Chromium commercial launch (Aug 2016). -->
+            <div class="track-dot method t-d2" style="left: 10%;"><span class="tag">10x Chromium</span><span class="sub">Aug 2016 · tool</span></div>
+            <!-- Perturb-seq original method (Dixit, Adamson 2016 Cell). -->
+            <div class="track-dot method t-u2 jog-r" style="left: 12%;"><span class="tag">Perturb-seq method</span><span class="sub">Dec 2016 · method</span></div>
             <!-- RxRx1: Jun 2019 — Recursion phenomics. -->
             <div class="track-dot t-u1" style="left: 32%;"><span class="tag">RxRx1</span><span class="sub">Jun 2019 · open</span></div>
             <!-- Perturb-seq genome-scale (Replogle et al.): Jun 2022. -->
@@ -1334,6 +1326,8 @@
         <div class="track-row">
           <div class="track-label">Models</div>
           <div class="track-lane reveal-cascade">
+            <!-- Transformer architecture (Vaswani et al., Jun 2017). -->
+            <div class="track-dot method t-u1" style="left: 16%;"><span class="tag">Transformer</span><span class="sub">Jun 2017 · arch</span></div>
             <!-- AlphaFold2: Jul 2021. -->
             <div class="track-dot t-u1" style="left: 49%;"><span class="tag">AlphaFold2</span><span class="sub">Jul 2021 · open</span></div>
             <!-- ESMFold (Metagenomic Atlas launch): Nov 2022. -->
@@ -1391,6 +1385,8 @@
         <div class="track-row">
           <div class="track-label">Atlases &amp;<br>multi-omics</div>
           <div class="track-lane reveal-cascade">
+            <!-- Spatial transcriptomics method (Ståhl et al., Jul 2016 Science). -->
+            <div class="track-dot method green t-u1" style="left: 9%;"><span class="tag">Spatial transcriptomics</span><span class="sub">Jul 2016 · method</span></div>
             <!-- 10x Visium (sequencing-based spatial): 2019, commercial. -->
             <div class="track-dot green t-d1" style="left: 33%;"><span class="tag">10x Visium</span><span class="sub">2019 · commercial</span></div>
             <!-- UK Biobank metabolomics interim (Nightingale NMR, ~118k): 2021. -->
