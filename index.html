@@ -2012,7 +2012,7 @@
                    Conventional) fades in to show the population-level
                    result of doing this many times.
                  Static fallback / reduced-motion: render the final S4 state. -->
-            <svg class="dual-sim-arc" viewBox="0 0 600 260" preserveAspectRatio="xMidYMid meet" aria-label="Per-experiment decision arc: simulate, execute, realize, decide. The decision-time histogram appears in stage 4.">
+            <svg class="dual-sim-arc" viewBox="0 0 800 220" preserveAspectRatio="xMidYMid meet" aria-label="Per-experiment decision arc: simulate, execute, realize, decide. The decision-time histogram appears in stage 4.">
               <defs>
                 <radialGradient id="arc-hyp-glow" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.55"/>
@@ -2025,115 +2025,117 @@
               </defs>
 
               <!-- Stage label (top-left). JS rewrites textContent per stage. -->
-              <text class="stage-name" x="30" y="42" font-family="Space Grotesk, sans-serif" font-size="24" font-weight="700" fill="#ffffff">Simulate</text>
-              <text class="stage-dt"   x="30" y="66" font-family="IBM Plex Mono, monospace" font-size="14" letter-spacing="0.5" fill="rgba(255,255,255,0.60)">(&Delta;t = minutes)</text>
+              <text class="stage-name" x="30" y="46" font-family="Space Grotesk, sans-serif" font-size="42" font-weight="700" fill="#ffffff">Simulate</text>
+              <text class="stage-dt"   x="30" y="78" font-family="IBM Plex Mono, monospace" font-size="22" letter-spacing="0.4" fill="rgba(255,255,255,0.62)">(&Delta;t = minutes)</text>
 
-              <!-- ARC: lives in the LEFT half of the card (x ≈ 30 to x ≈ 380).
-                   Hypothesis → Experiment → 3 Outcomes → 3 Decisions, with
-                   3 outcome rows (top=neg, mid=pos, bot=null per the spec). -->
+              <!-- ARC: lives in the LEFT region of the card (x ≈ 0 to x ≈ 480).
+                   Hypothesis → Experiment → 3 Outcomes → 3 Decisions; outcome
+                   rows at y=58 / 118 / 178 with bigger nodes to match the
+                   bigger fonts. -->
               <!-- Hypothesis node (purple, persistent) -->
               <g class="arc-hyp">
-                <circle cx="80" cy="140" r="24" fill="url(#arc-hyp-glow)" opacity="0"/>
-                <circle class="hyp-dot" cx="80" cy="140" r="12" fill="#a78bfa" stroke="#c4b5fd" stroke-width="1.5" opacity="0"/>
+                <circle cx="105" cy="118" r="28" fill="url(#arc-hyp-glow)" opacity="0"/>
+                <circle class="hyp-dot" cx="105" cy="118" r="15" fill="#a78bfa" stroke="#c4b5fd" stroke-width="1.8" opacity="0"/>
               </g>
               <!-- Experiment node (blue, persistent) -->
               <g class="arc-exp">
-                <circle cx="175" cy="140" r="24" fill="url(#arc-exp-glow)" opacity="0"/>
-                <circle class="exp-dot" cx="175" cy="140" r="12" fill="#60a5fa" stroke="#93c5fd" stroke-width="1.5" opacity="0"/>
+                <circle cx="215" cy="118" r="28" fill="url(#arc-exp-glow)" opacity="0"/>
+                <circle class="exp-dot" cx="215" cy="118" r="15" fill="#60a5fa" stroke="#93c5fd" stroke-width="1.8" opacity="0"/>
               </g>
 
-              <!-- Outcome nodes (3) at x=270, rows y=80, 140, 200 -->
+              <!-- Outcome nodes (3) at x=325, rows y=58 / 118 / 178 -->
               <g class="arc-outcomes">
-                <circle class="out-dot out-0" cx="270" cy="80"  r="11" fill="#f87171" stroke="#fca5a5" stroke-width="1.2" opacity="0"/>
-                <circle class="out-dot out-1" cx="270" cy="140" r="11" fill="#4ade80" stroke="#86efac" stroke-width="1.2" opacity="0"/>
-                <circle class="out-dot out-2" cx="270" cy="200" r="11" fill="#fbbf24" stroke="#fde68a" stroke-width="1.2" opacity="0"/>
+                <circle class="out-dot out-0" cx="325" cy="58"  r="14" fill="#f87171" stroke="#fca5a5" stroke-width="1.4" opacity="0"/>
+                <circle class="out-dot out-1" cx="325" cy="118" r="14" fill="#4ade80" stroke="#86efac" stroke-width="1.4" opacity="0"/>
+                <circle class="out-dot out-2" cx="325" cy="178" r="14" fill="#fbbf24" stroke="#fde68a" stroke-width="1.4" opacity="0"/>
               </g>
 
-              <!-- Decision nodes (3) at x=365, rows match outcomes -->
+              <!-- Decision nodes (3) at x=440, rows match outcomes -->
               <g class="arc-decisions">
                 <g class="dec-node dec-0" opacity="0">
-                  <circle cx="365" cy="80" r="12" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.4"/>
-                  <path d="M 361 76 L 370 80 L 361 84 Z" fill="#06b6d4"/>
+                  <circle cx="440" cy="58" r="15" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.8"/>
+                  <path d="M 434 53 L 446 58 L 434 63 Z" fill="#06b6d4"/>
                 </g>
                 <g class="dec-node dec-1" opacity="0">
-                  <circle cx="365" cy="140" r="12" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.4"/>
-                  <path d="M 361 136 L 370 140 L 361 144 Z" fill="#06b6d4"/>
+                  <circle cx="440" cy="118" r="15" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.8"/>
+                  <path d="M 434 113 L 446 118 L 434 123 Z" fill="#06b6d4"/>
                 </g>
                 <g class="dec-node dec-2" opacity="0">
-                  <circle cx="365" cy="200" r="12" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.4"/>
-                  <path d="M 361 196 L 370 200 L 361 204 Z" fill="#06b6d4"/>
+                  <circle cx="440" cy="178" r="15" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.8"/>
+                  <path d="M 434 173 L 446 178 L 434 183 Z" fill="#06b6d4"/>
                 </g>
               </g>
 
-              <!-- Connection lines (dotted + solid versions per link). Thicker
-                   strokes for legibility. JS crossfades opacities per stage. -->
+              <!-- Connection lines (dotted + solid versions per link).
+                   Thicker strokes + larger dashes for legibility. -->
               <!-- Hyp ↔ Exp -->
-              <line class="line-dotted line-he" x1="92"  y1="140" x2="163" y2="140" stroke="rgba(167,139,250,0.85)" stroke-width="2.0" stroke-dasharray="4 4" opacity="0"/>
-              <line class="line-solid  line-he" x1="92"  y1="140" x2="163" y2="140" stroke="rgba(167,139,250,1.0)"  stroke-width="2.4" opacity="0"/>
+              <line class="line-dotted line-he" x1="120" y1="118" x2="200" y2="118" stroke="rgba(167,139,250,0.85)" stroke-width="2.6" stroke-dasharray="5 5" opacity="0"/>
+              <line class="line-solid  line-he" x1="120" y1="118" x2="200" y2="118" stroke="rgba(167,139,250,1.0)"  stroke-width="3.2" opacity="0"/>
               <!-- Exp ↔ Outcomes (3) -->
-              <line class="line-dotted line-eo-0" x1="187" y1="140" x2="259" y2="80"  stroke="rgba(96,165,250,0.75)" stroke-width="1.7" stroke-dasharray="4 4" opacity="0"/>
-              <line class="line-dotted line-eo-1" x1="187" y1="140" x2="259" y2="140" stroke="rgba(96,165,250,0.75)" stroke-width="1.7" stroke-dasharray="4 4" opacity="0"/>
-              <line class="line-dotted line-eo-2" x1="187" y1="140" x2="259" y2="200" stroke="rgba(96,165,250,0.75)" stroke-width="1.7" stroke-dasharray="4 4" opacity="0"/>
-              <line class="line-solid  line-eo-0" x1="187" y1="140" x2="259" y2="80"  stroke="rgba(96,165,250,1.0)" stroke-width="2.2" opacity="0"/>
-              <line class="line-solid  line-eo-1" x1="187" y1="140" x2="259" y2="140" stroke="rgba(96,165,250,1.0)" stroke-width="2.2" opacity="0"/>
-              <line class="line-solid  line-eo-2" x1="187" y1="140" x2="259" y2="200" stroke="rgba(96,165,250,1.0)" stroke-width="2.2" opacity="0"/>
+              <line class="line-dotted line-eo-0" x1="230" y1="118" x2="311" y2="58"  stroke="rgba(96,165,250,0.75)" stroke-width="2.2" stroke-dasharray="5 5" opacity="0"/>
+              <line class="line-dotted line-eo-1" x1="230" y1="118" x2="311" y2="118" stroke="rgba(96,165,250,0.75)" stroke-width="2.2" stroke-dasharray="5 5" opacity="0"/>
+              <line class="line-dotted line-eo-2" x1="230" y1="118" x2="311" y2="178" stroke="rgba(96,165,250,0.75)" stroke-width="2.2" stroke-dasharray="5 5" opacity="0"/>
+              <line class="line-solid  line-eo-0" x1="230" y1="118" x2="311" y2="58"  stroke="rgba(96,165,250,1.0)" stroke-width="2.8" opacity="0"/>
+              <line class="line-solid  line-eo-1" x1="230" y1="118" x2="311" y2="118" stroke="rgba(96,165,250,1.0)" stroke-width="2.8" opacity="0"/>
+              <line class="line-solid  line-eo-2" x1="230" y1="118" x2="311" y2="178" stroke="rgba(96,165,250,1.0)" stroke-width="2.8" opacity="0"/>
               <!-- Outcomes ↔ Decisions (3) -->
-              <line class="line-dotted line-od-0" x1="281" y1="80"  x2="353" y2="80"  stroke="rgba(148,163,184,0.75)" stroke-width="1.7" stroke-dasharray="4 4" opacity="0"/>
-              <line class="line-dotted line-od-1" x1="281" y1="140" x2="353" y2="140" stroke="rgba(148,163,184,0.75)" stroke-width="1.7" stroke-dasharray="4 4" opacity="0"/>
-              <line class="line-dotted line-od-2" x1="281" y1="200" x2="353" y2="200" stroke="rgba(148,163,184,0.75)" stroke-width="1.7" stroke-dasharray="4 4" opacity="0"/>
-              <line class="line-solid  line-od-0" x1="281" y1="80"  x2="353" y2="80"  stroke="rgba(6,182,212,1.0)"    stroke-width="2.2" opacity="0"/>
-              <line class="line-solid  line-od-1" x1="281" y1="140" x2="353" y2="140" stroke="rgba(6,182,212,1.0)"    stroke-width="2.2" opacity="0"/>
-              <line class="line-solid  line-od-2" x1="281" y1="200" x2="353" y2="200" stroke="rgba(6,182,212,1.0)"    stroke-width="2.2" opacity="0"/>
+              <line class="line-dotted line-od-0" x1="339" y1="58"  x2="425" y2="58"  stroke="rgba(148,163,184,0.75)" stroke-width="2.2" stroke-dasharray="5 5" opacity="0"/>
+              <line class="line-dotted line-od-1" x1="339" y1="118" x2="425" y2="118" stroke="rgba(148,163,184,0.75)" stroke-width="2.2" stroke-dasharray="5 5" opacity="0"/>
+              <line class="line-dotted line-od-2" x1="339" y1="178" x2="425" y2="178" stroke="rgba(148,163,184,0.75)" stroke-width="2.2" stroke-dasharray="5 5" opacity="0"/>
+              <line class="line-solid  line-od-0" x1="339" y1="58"  x2="425" y2="58"  stroke="rgba(6,182,212,1.0)"    stroke-width="2.8" opacity="0"/>
+              <line class="line-solid  line-od-1" x1="339" y1="118" x2="425" y2="118" stroke="rgba(6,182,212,1.0)"    stroke-width="2.8" opacity="0"/>
+              <line class="line-solid  line-od-2" x1="339" y1="178" x2="425" y2="178" stroke="rgba(6,182,212,1.0)"    stroke-width="2.8" opacity="0"/>
 
-              <!-- Column labels at bottom -->
-              <g class="arc-col-labels" font-family="Inter, sans-serif" font-size="15" font-weight="500" fill="rgba(255,255,255,0.75)" text-anchor="middle">
-                <text class="col-label" x="80"  y="232">Hypothesis</text>
-                <text class="col-label" x="175" y="232">Experiment</text>
-                <text class="col-label" x="270" y="232">Outcomes</text>
-                <text class="col-label" x="365" y="232">Decision</text>
+              <!-- Column labels at bottom. Font sized so that adjacent labels
+                   ("Hypothesis" / "Experiment", both 10 chars) don't collide. -->
+              <g class="arc-col-labels" font-family="Inter, sans-serif" font-size="18" font-weight="500" fill="rgba(255,255,255,0.80)" text-anchor="middle">
+                <text class="col-label" x="105" y="212">Hypothesis</text>
+                <text class="col-label" x="215" y="212">Experiment</text>
+                <text class="col-label" x="325" y="212">Outcomes</text>
+                <text class="col-label" x="440" y="212">Decision</text>
               </g>
 
-              <!-- HISTOGRAM (S4 only): lives in the RIGHT region of the card,
-                   side-by-side with the arc. Decision-time distribution shows
-                   Manifest (cyan, left-peaked) vs Conventional (warm, right-
-                   peaked). Larger axis + legend labels for legibility. -->
+              <!-- HISTOGRAM (S4 only): right region of card (x=505 to x=795).
+                   Bigger axis labels + legend + bars for legibility. -->
               <g class="hist-inset" opacity="0">
                 <!-- Y-axis -->
-                <line x1="430" y1="78"  x2="430" y2="212" stroke="rgba(148,163,184,0.7)" stroke-width="1.2"/>
-                <path d="M 426 82 L 430 74 L 434 82 Z" fill="rgba(148,163,184,0.7)"/>
+                <line x1="555" y1="48"  x2="555" y2="180" stroke="rgba(148,163,184,0.7)" stroke-width="1.6"/>
+                <path d="M 550 53 L 555 43 L 560 53 Z" fill="rgba(148,163,184,0.7)"/>
                 <!-- X-axis -->
-                <line x1="430" y1="212" x2="588" y2="212" stroke="rgba(148,163,184,0.7)" stroke-width="1.2"/>
-                <path d="M 584 208 L 592 212 L 584 216 Z" fill="rgba(148,163,184,0.7)"/>
-                <!-- Warm bars (Conventional R&D): right-peaked. Heights peak ~90. -->
-                <g fill="#fb923c" fill-opacity="0.65" stroke="#fb923c" stroke-width="0.5">
-                  <rect x="437" y="206" width="17" height="6"/>
-                  <rect x="457" y="194" width="17" height="18"/>
-                  <rect x="477" y="172" width="17" height="40"/>
-                  <rect x="497" y="142" width="17" height="70"/>
-                  <rect x="517" y="122" width="17" height="90"/>
-                  <rect x="537" y="148" width="17" height="64"/>
-                  <rect x="557" y="184" width="17" height="28"/>
+                <line x1="555" y1="180" x2="775" y2="180" stroke="rgba(148,163,184,0.7)" stroke-width="1.6"/>
+                <path d="M 770 175 L 780 180 L 770 185 Z" fill="rgba(148,163,184,0.7)"/>
+                <!-- Warm bars (Conventional R&D): right-peaked. Heights peak ~118. -->
+                <g fill="#fb923c" fill-opacity="0.65" stroke="#fb923c" stroke-width="0.6">
+                  <rect x="563" y="170" width="22" height="10"/>
+                  <rect x="591" y="156" width="22" height="24"/>
+                  <rect x="619" y="130" width="22" height="50"/>
+                  <rect x="647" y="92"  width="22" height="88"/>
+                  <rect x="675" y="62"  width="22" height="118"/>
+                  <rect x="703" y="96"  width="22" height="84"/>
+                  <rect x="731" y="148" width="22" height="32"/>
                 </g>
                 <!-- Cyan bars (Manifest): left-peaked, overlapping. -->
-                <g fill="#06b6d4" fill-opacity="0.78" stroke="#06b6d4" stroke-width="0.5">
-                  <rect x="437" y="186" width="17" height="26"/>
-                  <rect x="457" y="152" width="17" height="60"/>
-                  <rect x="477" y="124" width="17" height="88"/>
-                  <rect x="497" y="146" width="17" height="66"/>
-                  <rect x="517" y="174" width="17" height="38"/>
-                  <rect x="537" y="200" width="17" height="12"/>
-                  <rect x="557" y="208" width="17" height="4"/>
+                <g fill="#06b6d4" fill-opacity="0.78" stroke="#06b6d4" stroke-width="0.6">
+                  <rect x="563" y="146" width="22" height="34"/>
+                  <rect x="591" y="100" width="22" height="80"/>
+                  <rect x="619" y="64"  width="22" height="116"/>
+                  <rect x="647" y="96"  width="22" height="84"/>
+                  <rect x="675" y="138" width="22" height="42"/>
+                  <rect x="703" y="166" width="22" height="14"/>
+                  <rect x="731" y="174" width="22" height="6"/>
                 </g>
-                <!-- Y-axis label ("decisions"), rotated -->
-                <text x="416" y="148" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="rgba(255,255,255,0.65)" transform="rotate(-90 416 148)">decisions</text>
+                <!-- Y-axis label ("decisions"), rotated. -->
+                <text x="530" y="118" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" fill="rgba(255,255,255,0.70)" transform="rotate(-90 530 118)">decisions</text>
                 <!-- X-axis label ("time") -->
-                <text x="509" y="232" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="rgba(255,255,255,0.65)">time</text>
-                <!-- Distribution legends (top of the histogram region) -->
-                <g font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="0.4">
-                  <circle cx="438" cy="58" r="4" fill="#06b6d4"/>
-                  <text x="446" y="62" fill="#06b6d4">Manifest</text>
-                  <circle cx="508" cy="58" r="4" fill="#fb923c"/>
-                  <text x="516" y="62" fill="#fb923c">Conventional R&amp;D</text>
+                <text x="665" y="212" text-anchor="middle" font-family="Inter, sans-serif" font-size="22" fill="rgba(255,255,255,0.70)">time</text>
+                <!-- Distribution legends (top of the histogram region).
+                     Shortened to "Conventional" to fit beside "Manifest"
+                     at the larger font size without overlap. -->
+                <g font-family="IBM Plex Mono, monospace" font-size="18" letter-spacing="0.3">
+                  <circle cx="560" cy="28" r="5" fill="#06b6d4"/>
+                  <text x="572" y="33" fill="#06b6d4">Manifest</text>
+                  <circle cx="675" cy="28" r="5" fill="#fb923c"/>
+                  <text x="687" y="33" fill="#fb923c">Conventional</text>
                 </g>
               </g>
             </svg>
