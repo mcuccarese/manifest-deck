@@ -708,8 +708,8 @@
     height: min(580px, calc(100vh - 300px));
   }
   .dual-grid > .dual-card.twin     { grid-column: 1; grid-row: 1; }
-  .dual-grid > .dual-card.outcomes { grid-column: 1; grid-row: 2; }
-  .dual-grid > .dual-card.fusion   { grid-column: 2; grid-row: 1 / span 2; }
+  .dual-grid > .dual-card.fusion   { grid-column: 1; grid-row: 2; }
+  .dual-grid > .dual-card.outcomes { grid-column: 2; grid-row: 1 / span 2; }
   .dual-card {
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(8, 165, 215, 0.18);
@@ -834,90 +834,134 @@
   .twin-tree svg, .twin-chart svg { width: 100%; height: 100%; display: block; overflow: visible; }
 
   /* ============================================================
-     OUTCOMES BOED ANIMATION — Frame 5 outcomes card
-     Phases: HYPOTHESIZE → EXPERIMENT → PROJECT → SCHEDULE → HOLD → FADE.
-     JS controls opacities and class flips per phase.
+     OUTCOMES BOED v3 — Frame 5, 7-stage animation.
+     Most elements are populated dynamically in JS (setupBOEDv3);
+     this stylesheet just sets default appearances. Per-frame
+     opacity/position is set inline by the rAF loop.
      ============================================================ */
-  /* Phase strip: each label dims by default; JS adds .is-active (current)
-     or .is-past (already shown) per phase. */
-  .outcomes-sankey .phase            { fill: rgba(255,255,255,0.20); transition: fill 0.35s ease; }
-  .outcomes-sankey .phase-sep        { fill: rgba(255,255,255,0.15); }
-  .outcomes-sankey .phase.is-active  { fill: var(--accent-hi); }
-  .outcomes-sankey .phase.is-past    { fill: rgba(255,255,255,0.40); }
 
-  /* Current / TPP nodes — current always visible, TPP starts dim and
-     lights up in SCHEDULE phase. */
-  .outcomes-sankey .node-glow              { transition: opacity 0.5s ease; }
-  .outcomes-sankey .tpp .node-glow         { opacity: 0.18; }
-  .outcomes-sankey .tpp.is-lit .node-glow  { opacity: 0.95; }
-  .outcomes-sankey .current .node-glow     { opacity: 0.75; }
+  /* Common: smooth opacity transitions for fades between stages. */
+  .outcomes-sankey.boed circle,
+  .outcomes-sankey.boed rect,
+  .outcomes-sankey.boed line,
+  .outcomes-sankey.boed path,
+  .outcomes-sankey.boed text {
+    transition: opacity 0.25s ease;
+  }
+  /* During tree → list morph (S3 end / S4A start) we want a slightly
+     slower fade so the transition feels like a deliberate handoff. */
+  .outcomes-sankey.boed.is-morphing circle,
+  .outcomes-sankey.boed.is-morphing rect,
+  .outcomes-sankey.boed.is-morphing line,
+  .outcomes-sankey.boed.is-morphing path {
+    transition: opacity 0.5s ease;
+  }
 
-  /* Hypothesis rings — hollow open by default. .is-resolved fills them
-     cyan once SCHEDULE has picked an experiment that addresses them. */
-  .outcomes-sankey .hyp {
-    opacity: 0;
-    transition: opacity 0.4s ease, fill 0.4s ease, stroke 0.4s ease, r 0.4s ease;
+  /* Stage-1 / stage-2 lines */
+  .outcomes-sankey.boed .state-hyp {
+    stroke: rgba(148,163,184,0.55);
+    stroke-width: 0.9;
+    fill: none;
   }
-  .outcomes-sankey .hyp.is-pulsing {
-    /* PROJECT shimmer: brief stroke flash. */
-    stroke: rgba(255,255,255,0.95);
-    stroke-width: 1.5;
+  .outcomes-sankey.boed .hyp-tpp {
+    stroke: rgba(148,163,184,0.40);
+    stroke-width: 0.6;
+    stroke-dasharray: 3 3;
+    fill: none;
   }
-  .outcomes-sankey .hyp.is-resolved {
-    fill: rgba(6,182,212,0.80);
-    stroke: rgba(6,182,212,1);
-  }
-  .outcomes-sankey .hyp-label {
-    fill: rgba(255,255,255,0.45);
-    opacity: 0;
-    transition: opacity 0.4s ease, fill 0.4s ease;
-  }
-  .outcomes-sankey .hyp-label.is-resolved { fill: rgba(6,182,212,0.85); }
-  .outcomes-sankey .hyp-glow   { transition: opacity 0.5s ease; }
-
-  /* Experiment dots — default dim slate; PROJECT shimmer flashes them
-     white, SCHEDULE selection turns them solid cyan with halo. */
-  .outcomes-sankey .exp {
-    fill: #1e293b;
-    stroke: rgba(148,163,184,0.65);
-    stroke-width: 1.1;
-    opacity: 0;
-    transition: opacity 0.4s ease, fill 0.4s ease, stroke 0.4s ease;
-  }
-  .outcomes-sankey .exp.is-shimmering {
-    fill: rgba(255,255,255,0.95);
-    stroke: rgba(255,255,255,1);
-  }
-  .outcomes-sankey .exp.is-selected {
-    fill: rgba(6,182,212,0.95);
-    stroke: rgba(6,182,212,1);
-  }
-  .outcomes-sankey .exp-halo     { transition: opacity 0.5s ease; }
-  .outcomes-sankey .exp-shimmer  { transition: opacity 0.15s ease; }
-
-  /* Connection lines — faint by default, brighten when active (PROJECT
-     shimmer touches them) or selected (SCHEDULE chooses their experiment). */
-  .outcomes-sankey .conn {
-    stroke: rgba(148,163,184,0.30);
+  .outcomes-sankey.boed .exp-hyp {
+    stroke: rgba(148,163,184,0.55);
     stroke-width: 0.8;
     fill: none;
-    opacity: 0;
-    transition: opacity 0.4s ease, stroke 0.3s ease, stroke-width 0.3s ease;
   }
-  .outcomes-sankey .conn.is-active   { stroke: rgba(255,255,255,0.85); stroke-width: 1.1; }
-  .outcomes-sankey .conn.is-selected { stroke: rgba(6,182,212,0.85);   stroke-width: 1.2; }
-
-  /* Time bars — appear in SCHEDULE; selected experiments' bars get the
-     cyan treatment, others stay slate-dim. */
-  .outcomes-sankey .bar {
-    fill: rgba(148,163,184,0.40);
-    opacity: 0;
-    transition: opacity 0.4s ease, fill 0.4s ease;
+  .outcomes-sankey.boed .exp-outcome {
+    stroke: rgba(148,163,184,0.40);
+    stroke-width: 0.55;
+    stroke-dasharray: 2 2;
+    fill: none;
   }
-  .outcomes-sankey .bar.is-selected { fill: rgba(6,182,212,0.90); }
+  /* Sweep highlight color overrides the default line stroke when a line
+     is on the active path. JS adds .is-pos / .is-null / .is-neg per kind. */
+  .outcomes-sankey.boed .exp-hyp.is-pos,
+  .outcomes-sankey.boed .exp-outcome.is-pos      { stroke: rgba(34, 197, 94, 0.95);  stroke-width: 1.2; stroke-dasharray: none; }
+  .outcomes-sankey.boed .exp-hyp.is-null,
+  .outcomes-sankey.boed .exp-outcome.is-null     { stroke: rgba(251, 191, 36, 0.85); stroke-width: 1.0; stroke-dasharray: none; }
+  .outcomes-sankey.boed .exp-hyp.is-neg,
+  .outcomes-sankey.boed .exp-outcome.is-neg      { stroke: rgba(248, 113, 113, 0.95); stroke-width: 1.2; stroke-dasharray: none; }
 
-  /* Status line — JS rewrites textContent per phase. */
-  .outcomes-sankey .status { transition: fill 0.4s ease; }
+  /* Hypothesis nodes — cyan ring, hollow center (open question). */
+  .outcomes-sankey.boed .hyp {
+    fill: rgba(6, 182, 212, 0.10);
+    stroke: rgba(6, 182, 212, 0.85);
+    stroke-width: 1.3;
+  }
+  /* Experiment dots — solid blue-cyan, smaller than hypotheses. */
+  .outcomes-sankey.boed .exp {
+    fill: rgba(96, 165, 250, 0.90);
+    stroke: rgba(96, 165, 250, 1);
+    stroke-width: 0.8;
+  }
+  /* Outcome circles — 3 colors per experiment (neg / null / pos). Set
+     by inline fill at init; this rule provides the stroke-less default. */
+  .outcomes-sankey.boed .outcome { stroke: none; }
+
+  /* Hypothesis label */
+  .outcomes-sankey.boed .hyp-label {
+    fill: rgba(255,255,255,0.55);
+    font-family: var(--mono);
+    font-size: 6.5px;
+    letter-spacing: 0.6px;
+    text-anchor: middle;
+  }
+
+  /* Persistent node glows (program state always-on, TPP fades) */
+  .outcomes-sankey.boed .node-glow            { transition: opacity 0.5s ease; }
+  .outcomes-sankey.boed .program-node .node-glow { opacity: 0.55; }
+
+  /* Stage-4 pair row elements */
+  .outcomes-sankey.boed .pair-exp {
+    fill: rgba(96, 165, 250, 0.90);
+    stroke: rgba(96, 165, 250, 1);
+    stroke-width: 0.8;
+  }
+  .outcomes-sankey.boed .pair-out {
+    /* fill set per-element inline (green intensity = impact);
+       stroke is a subtle outline for legibility. */
+    stroke: rgba(255,255,255,0.18);
+    stroke-width: 0.5;
+  }
+  .outcomes-sankey.boed .pair-link {
+    stroke: rgba(148,163,184,0.50);
+    stroke-width: 0.6;
+    fill: none;
+  }
+
+  /* Combination curves — drawn to the LEFT of pair rows, arching between
+     two pair experiments that combine well. */
+  .outcomes-sankey.boed .combination {
+    stroke: rgba(167, 139, 250, 0.45);
+    stroke-width: 0.6;
+    fill: none;
+  }
+
+  /* Time axis (stage 4b) */
+  .outcomes-sankey.boed .time-axis line,
+  .outcomes-sankey.boed .time-axis path {
+    stroke: rgba(148,163,184,0.55);
+    fill: rgba(148,163,184,0.55);
+  }
+  .outcomes-sankey.boed .time-axis text {
+    fill: rgba(255,255,255,0.50);
+    font-family: var(--mono);
+    font-size: 7px;
+    letter-spacing: 1px;
+  }
+
+  /* Selection halos — cyan glow under selected pairs. */
+  .outcomes-sankey.boed .selection-halo { transition: opacity 0.4s ease, cx 0.4s ease, cy 0.4s ease; }
+
+  /* Outcome flash highlight (the moving spotlight during S3 sweep) */
+  .outcomes-sankey.boed .outcome-flash { transition: opacity 0.08s linear; }
 
   /* ============================================================
      FRAME 03 — MOAT + MODEL — text two-column
@@ -1826,19 +1870,38 @@
         <div class="dual-card sim outcomes reveal-fade" style="transition-delay: 0.30s;">
           <div class="tag">Outcomes simulation</div>
           <div class="twin-tree">
-            <!-- BOED animation: ~9.5s loop through HYPOTHESIZE → EXPERIMENT →
-                 PROJECT (shimmer wave) → SCHEDULE → HOLD → FADE.
-                 Hypotheses (top row) are open questions standing between the
-                 program's current belief state and TPP. Experiments (bottom
-                 row) are candidate actions; each addresses one or more
-                 hypotheses (many-to-many lines). PROJECT sweeps left-to-right
-                 lighting each experiment + its connected hypotheses briefly
-                 to convey "for THIS experiment, here's what we'd learn."
-                 SCHEDULE highlights the top-K subset whose joint coverage of
-                 hypotheses maximizes ΔP(TPP) per unit time.
-                 The static state (JS off / reduced-motion) renders the final
-                 SCHEDULE phase. -->
-            <svg class="outcomes-sankey" viewBox="0 0 480 200" preserveAspectRatio="xMidYMid meet" aria-label="BOED animation: identify hypotheses, design candidate experiments, project each experiment's learning impact, schedule the subset that maximizes expected belief-shift per unit time.">
+            <!-- BOED v3: 12s loop in 7 stages.
+                 S1 HYPOTHESIZE   — 5 hypothesis nodes branch from program
+                                    state; dotted lines reach to TPP showing
+                                    each hypothesis as a gap on the path to
+                                    a successful program.
+                 S2 EXPERIMENT    — TPP fades out; from each hypothesis,
+                                    experiments fan out; from each experiment,
+                                    3 outcome circles appear (neg / null / pos).
+                                    Two cross-cutter experiments connect to a
+                                    second hypothesis.
+                 S3 PROJECT       — 30 outcomes are evaluated one by one.
+                                    First 3 are slow (perceivable), then speed
+                                    ramps geometrically (showing computational
+                                    reasoning). Each evaluation highlights the
+                                    outcome and its return path, dims sibling
+                                    branches that this outcome would moot.
+                 S4A PAIRS+COMBOS — Tree collapses into a vertical list of 30
+                                    (experiment, outcome) pair rows; each
+                                    outcome square's green intensity encodes
+                                    learning impact; 18 curves connect pairs
+                                    whose combinations score well together.
+                 S4B TIME AXIS    — Pairs reposition along an x-axis labeled
+                                    'time' — each experiment's horizontal
+                                    span is the duration the digital twin
+                                    estimates it will take.
+                 S4C SELECTION    — Top-K (highest impact/time) stay
+                                    highlighted with cyan halos; the rest fade.
+                                    HOLD briefly, then loop back to S1.
+                 Most of the dense markup is generated by JS (setupBOEDv3);
+                 this SVG ships only with the persistent nodes + container
+                 groups for JS to populate. -->
+            <svg class="outcomes-sankey boed" viewBox="0 0 400 500" preserveAspectRatio="xMidYMid meet" aria-label="BOED process animation in 7 stages: hypothesis enumeration, experiment + outcome forecasting, hypothesis-space condensation, combination scoring, time-aware scheduling, and selection.">
               <defs>
                 <radialGradient id="current-glow" cx="50%" cy="50%" r="50%">
                   <stop offset="0%" stop-color="#fb923c" stop-opacity="0.85"/>
@@ -1848,133 +1911,57 @@
                   <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.95"/>
                   <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
                 </radialGradient>
-                <radialGradient id="hyp-resolved-glow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.55"/>
+                <radialGradient id="selection-glow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.7"/>
                   <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
                 </radialGradient>
-                <radialGradient id="exp-selected-glow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stop-color="#06b6d4" stop-opacity="0.75"/>
-                  <stop offset="100%" stop-color="#06b6d4" stop-opacity="0"/>
-                </radialGradient>
-                <radialGradient id="exp-shimmer-glow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75"/>
+                <radialGradient id="outcome-flash-glow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.85"/>
                   <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
                 </radialGradient>
               </defs>
 
-              <!-- Phase strip across the top -->
-              <g class="phase-strip" font-family="IBM Plex Mono, monospace" font-size="7" letter-spacing="1.5" text-anchor="middle">
-                <text class="phase phase-hypothesize" x="65"  y="14">HYPOTHESIZE</text>
-                <text class="phase-sep" x="130" y="14">·</text>
-                <text class="phase phase-experiment"  x="180" y="14">EXPERIMENT</text>
-                <text class="phase-sep" x="240" y="14">·</text>
-                <text class="phase phase-project"     x="290" y="14">PROJECT</text>
-                <text class="phase-sep" x="345" y="14">·</text>
-                <text class="phase phase-schedule"    x="400" y="14">SCHEDULE</text>
+              <!-- Persistent: program state node (left, all tree stages) -->
+              <g class="program-node">
+                <circle class="node-glow" cx="36" cy="250" r="22" fill="url(#current-glow)" opacity="0.55"/>
+                <rect x="6" y="238" width="60" height="24" rx="5" fill="#1e293b" stroke="#fb923c" stroke-width="1.4"/>
+                <text x="36" y="252" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="8.5" font-weight="600" fill="#ffffff">program state</text>
               </g>
 
-              <!-- TPP target node (right edge, vertically centered) -->
-              <g class="node tpp">
-                <circle class="node-glow tpp-glow" cx="450" cy="100" r="22" fill="url(#tpp-glow)"/>
-                <rect x="428" y="90" width="44" height="20" rx="5" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.4"/>
-                <text x="450" y="104" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="9.5" font-weight="600" fill="#ffffff">TPP</text>
+              <!-- Stage-1-only: TPP node (right). JS fades it out at S1→S2. -->
+              <g class="tpp-node">
+                <circle class="node-glow tpp-glow" cx="368" cy="250" r="22" fill="url(#tpp-glow)" opacity="0.20"/>
+                <rect x="340" y="238" width="54" height="24" rx="5" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.4"/>
+                <text x="367" y="253" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="10" font-weight="600" fill="#ffffff">TPP</text>
               </g>
 
-              <!-- Current state node (left edge, vertically centered) -->
-              <g class="node current">
-                <circle class="node-glow current-glow" cx="30" cy="100" r="22" fill="url(#current-glow)"/>
-                <rect x="8" y="90" width="44" height="20" rx="5" fill="#1e293b" stroke="#fb923c" stroke-width="1.4"/>
-                <text x="30" y="104" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="9.5" font-weight="600" fill="#ffffff">current</text>
-              </g>
+              <!-- Container groups (populated by JS). Render order matters:
+                   lines first, then nodes, so nodes draw on top of their
+                   connector lines. Stage-4 elements last so they overlay tree
+                   when both are visible during the transition. -->
+              <g class="hyp-tpp-dotlines"></g>
+              <g class="hyp-state-lines"></g>
+              <g class="hyp-labels"></g>
+              <g class="hypotheses"></g>
 
-              <!-- Hypothesis labels (above each hypothesis ring) -->
-              <g class="hyp-labels" font-family="IBM Plex Mono, monospace" font-size="6.5" letter-spacing="0.6" text-anchor="middle">
-                <text class="hyp-label" data-h="0" x="135" y="40">target</text>
-                <text class="hyp-label" data-h="1" x="215" y="40">selectivity</text>
-                <text class="hyp-label" data-h="2" x="295" y="40">PK / PD</text>
-                <text class="hyp-label" data-h="3" x="375" y="40">safety</text>
-              </g>
+              <g class="exp-hyp-lines"></g>
+              <g class="experiments"></g>
 
-              <!-- Hypothesis resolution glows (sit behind the rings so the
-                   ring strokes overlay cleanly; opacity goes up in SCHEDULE) -->
-              <g class="hyp-glows">
-                <circle class="hyp-glow" data-h="0" cx="135" cy="56" r="14" fill="url(#hyp-resolved-glow)" opacity="0"/>
-                <circle class="hyp-glow" data-h="1" cx="215" cy="56" r="14" fill="url(#hyp-resolved-glow)" opacity="0"/>
-                <circle class="hyp-glow" data-h="2" cx="295" cy="56" r="14" fill="url(#hyp-resolved-glow)" opacity="0"/>
-                <circle class="hyp-glow" data-h="3" cx="375" cy="56" r="14" fill="url(#hyp-resolved-glow)" opacity="0"/>
-              </g>
+              <g class="exp-outcome-lines"></g>
+              <g class="outcomes"></g>
 
-              <!-- Hypothesis rings — hollow when open, filled cyan when resolved.
-                   The fill is set via inline style in JS so .is-resolved class
-                   can override it. -->
-              <g class="hypotheses">
-                <circle class="hyp" data-h="0" cx="135" cy="56" r="5.5" fill="rgba(6,182,212,0.05)" stroke="rgba(6,182,212,0.55)" stroke-width="1.2"/>
-                <circle class="hyp" data-h="1" cx="215" cy="56" r="5.5" fill="rgba(6,182,212,0.05)" stroke="rgba(6,182,212,0.55)" stroke-width="1.2"/>
-                <circle class="hyp" data-h="2" cx="295" cy="56" r="5.5" fill="rgba(6,182,212,0.05)" stroke="rgba(6,182,212,0.55)" stroke-width="1.2"/>
-                <circle class="hyp" data-h="3" cx="375" cy="56" r="5.5" fill="rgba(6,182,212,0.05)" stroke="rgba(6,182,212,0.55)" stroke-width="1.2"/>
-              </g>
+              <!-- One reusable highlight halo that JS moves to the current
+                   outcome during the sweep (cheaper than 30 halos). -->
+              <circle class="outcome-flash" cx="0" cy="0" r="9" fill="url(#outcome-flash-glow)" opacity="0"/>
 
-              <!-- Connection lines: experiment → hypothesis. Each line's
-                   data-conn="<e>-<h>" indexes are used by JS to highlight.
-                   Many-to-many: e1→{h0,h1}, e3→{h1,h2}, e4→{h2,h3}; e0,e2,e5
-                   are single-hypothesis specialists. -->
-              <g class="connections">
-                <line class="conn" data-conn="0-0" x1="115" y1="142" x2="135" y2="62"/>
-                <line class="conn" data-conn="1-0" x1="175" y1="142" x2="135" y2="62"/>
-                <line class="conn" data-conn="1-1" x1="175" y1="142" x2="215" y2="62"/>
-                <line class="conn" data-conn="2-1" x1="235" y1="142" x2="215" y2="62"/>
-                <line class="conn" data-conn="3-1" x1="295" y1="142" x2="215" y2="62"/>
-                <line class="conn" data-conn="3-2" x1="295" y1="142" x2="295" y2="62"/>
-                <line class="conn" data-conn="4-2" x1="355" y1="142" x2="295" y2="62"/>
-                <line class="conn" data-conn="4-3" x1="355" y1="142" x2="375" y2="62"/>
-                <line class="conn" data-conn="5-3" x1="415" y1="142" x2="375" y2="62"/>
-              </g>
+              <!-- Stage-4 layer: pair rows, combinations, time axis, halos -->
+              <g class="combinations"></g>
+              <g class="time-axis"></g>
+              <g class="pair-rows"></g>
+              <g class="selection-halos"></g>
 
-              <!-- Experiment selection halos (e1 and e4 are the scheduled
-                   subset — together they cover all 4 hypotheses). Behind the
-                   experiment dots so the dots draw on top. -->
-              <g class="exp-halos">
-                <circle class="exp-halo" data-e="1" cx="175" cy="142" r="13" fill="url(#exp-selected-glow)" opacity="0"/>
-                <circle class="exp-halo" data-e="4" cx="355" cy="142" r="13" fill="url(#exp-selected-glow)" opacity="0"/>
-              </g>
-
-              <!-- Experiment shimmer glows (PROJECT phase wave sweep highlights
-                   one experiment at a time). Pre-positioned for all 6. -->
-              <g class="exp-shimmers">
-                <circle class="exp-shimmer" data-e="0" cx="115" cy="142" r="11" fill="url(#exp-shimmer-glow)" opacity="0"/>
-                <circle class="exp-shimmer" data-e="1" cx="175" cy="142" r="11" fill="url(#exp-shimmer-glow)" opacity="0"/>
-                <circle class="exp-shimmer" data-e="2" cx="235" cy="142" r="11" fill="url(#exp-shimmer-glow)" opacity="0"/>
-                <circle class="exp-shimmer" data-e="3" cx="295" cy="142" r="11" fill="url(#exp-shimmer-glow)" opacity="0"/>
-                <circle class="exp-shimmer" data-e="4" cx="355" cy="142" r="11" fill="url(#exp-shimmer-glow)" opacity="0"/>
-                <circle class="exp-shimmer" data-e="5" cx="415" cy="142" r="11" fill="url(#exp-shimmer-glow)" opacity="0"/>
-              </g>
-
-              <!-- Experiment dots — small, dim by default, brighten when
-                   selected. Solid background so connection lines visually
-                   end at the rim. -->
-              <g class="experiments">
-                <circle class="exp" data-e="0" cx="115" cy="142" r="4"/>
-                <circle class="exp" data-e="1" cx="175" cy="142" r="4"/>
-                <circle class="exp" data-e="2" cx="235" cy="142" r="4"/>
-                <circle class="exp" data-e="3" cx="295" cy="142" r="4"/>
-                <circle class="exp" data-e="4" cx="355" cy="142" r="4"/>
-                <circle class="exp" data-e="5" cx="415" cy="142" r="4"/>
-              </g>
-
-              <!-- Time bars — appear in SCHEDULE phase. Length = relative
-                   duration the digital twin says this experiment needs.
-                   Selected experiments' bars brighten in cyan. -->
-              <g class="time-bars">
-                <rect class="bar" data-e="0" x="105" y="156" width="20" height="2.5" rx="1.2"/>
-                <rect class="bar" data-e="1" x="167" y="156" width="14" height="2.5" rx="1.2"/>
-                <rect class="bar" data-e="2" x="225" y="156" width="20" height="2.5" rx="1.2"/>
-                <rect class="bar" data-e="3" x="279" y="156" width="32" height="2.5" rx="1.2"/>
-                <rect class="bar" data-e="4" x="340" y="156" width="30" height="2.5" rx="1.2"/>
-                <rect class="bar" data-e="5" x="403" y="156" width="24" height="2.5" rx="1.2"/>
-              </g>
-
-              <!-- Status line (bottom) -->
-              <text class="status" x="240" y="188" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" letter-spacing="1.4" fill="rgba(255,255,255,0.50)">.</text>
+              <!-- Stage caption (bottom). JS rewrites textContent per stage. -->
+              <text class="stage-caption" x="200" y="490" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" letter-spacing="1.3" fill="rgba(255,255,255,0.50)">.</text>
             </svg>
           </div>
         </div>
@@ -2334,219 +2321,537 @@
   })();
 
   // ============================================================
-  // 3. Outcomes card — BOED phase animation (Frame 5)
-  //    ~9.5s loop: HYPOTHESIZE → EXPERIMENT → PROJECT → SCHEDULE
-  //                → HOLD → FADE.
+  // 3. Outcomes card — BOED v3 (Frame 5) — 7-stage 12s loop.
   //
-  //    HYPOTHESIZE: 4 open-hypothesis rings fade in.
-  //    EXPERIMENT:  6 experiment dots + connection lines fade in (each
-  //                 experiment maps to 1-2 hypotheses, many-to-many).
-  //    PROJECT:     wave sweeps left-to-right; each experiment in turn
-  //                 brightens, its connections + connected hypotheses
-  //                 flash, conveying "for THIS experiment we project
-  //                 these belief updates."
-  //    SCHEDULE:    time bars under each experiment appear (length =
-  //                 duration the twin says it needs); the top-K subset
-  //                 (e1 + e4, which jointly cover all 4 hypotheses)
-  //                 highlights, their connections solidify, the
-  //                 addressed hypotheses resolve (fill cyan), and TPP
-  //                 lights up because belief shifted toward it.
-  //    HOLD/FADE:   final state holds, then fades back to start.
+  //    S1 HYPOTHESIZE  hypothesis enumeration (5 questions branching
+  //                    from program state, dotted lines to TPP).
+  //    S2 EXPERIMENT   tree expansion: experiments fan from each
+  //                    hypothesis, then 3 outcomes per experiment;
+  //                    TPP fades out. Includes 2 cross-cutter experiments
+  //                    that connect to a second hypothesis.
+  //    S3 PROJECT      sweep through all 30 outcomes one at a time. First
+  //                    3 are slow (~0.4s each) so the viewer can perceive
+  //                    them; remaining 27 ramp geometrically to ~0.04s
+  //                    each (computational reasoning at scale). Each
+  //                    sweep highlights the outcome + its return path
+  //                    and dims sibling branches it would moot.
+  //    S4A PAIRS       tree collapses into 30 vertical pair rows
+  //                    (blue exp circle + green-tinted outcome square);
+  //                    square darkness encodes learning impact; 18
+  //                    combination curves connect pair rows that combine
+  //                    well together.
+  //    S4B TIME AXIS   pairs reposition along a top "time" axis; the
+  //                    horizontal span between blue circle and green
+  //                    square is the experiment duration the digital
+  //                    twin estimates.
+  //    S4C SELECTION   top-K (highest impact/time) pairs keep their
+  //                    color, others fade to gray; cyan halos appear
+  //                    under the selected pairs ("queued").
+  //    HOLD            brief hold at S4C state, then loop back to S1.
+  //
+  //    Most elements are generated by the IIFE at init time and
+  //    indexed by data-h / data-e / data-o attributes.
   // ============================================================
-  (function setupBOEDAnimation() {
-    const svg = document.querySelector('#frame-5 .outcomes-sankey');
+  (function setupBOEDv3() {
+    const svg = document.querySelector('#frame-5 .outcomes-sankey.boed');
     if (!svg) return;
+    const SVG_NS = 'http://www.w3.org/2000/svg';
 
-    // ---- timing (seconds) ----
-    const LOOP = 9.5;
+    // ---- Timing (seconds) ----
+    const LOOP = 12.0;
     const PH = {
-      HYPO:     { s: 0.0, e: 1.8 },
-      EXP:      { s: 1.8, e: 3.3 },
-      PROJECT:  { s: 3.3, e: 5.8 },
-      SCHEDULE: { s: 5.8, e: 7.8 },
-      HOLD:     { s: 7.8, e: 9.0 },
-      FADE:     { s: 9.0, e: 9.5 },
+      S1:   { s: 0.0,  e: 1.8 },   // HYPOTHESIZE
+      S2:   { s: 1.8,  e: 3.5 },   // EXPERIMENT + OUTCOME ENUMERATION
+      S3:   { s: 3.5,  e: 7.0 },   // PROJECT (30-outcome sweep with speed ramp)
+      S4A:  { s: 7.0,  e: 8.5 },   // PAIRS + COMBINATIONS
+      S4B:  { s: 8.5,  e: 10.0 },  // TIME AXIS
+      S4C:  { s: 10.0, e: 11.5 },  // SELECTION
+      HOLD: { s: 11.5, e: 12.0 },  // HOLD
     };
 
-    // ---- which hypotheses each experiment addresses (many-to-many) ----
-    const E_TO_H = {
-      0: [0],         // target only
-      1: [0, 1],      // target + selectivity (fast, dual-hit)
-      2: [1],         // selectivity only
-      3: [1, 2],      // selectivity + PK/PD
-      4: [2, 3],      // PK/PD + safety (CRO, slow but covers two)
-      5: [3],         // safety only
+    // ---- Data: hypotheses, experiments, outcomes ----
+    const HYPS = [
+      { id: 0, y: 70,  label: 'target' },
+      { id: 1, y: 160, label: 'selectivity' },
+      { id: 2, y: 240, label: 'PK / PD' },
+      { id: 3, y: 320, label: 'translation' },
+      { id: 4, y: 420, label: 'safety' },
+    ];
+    // 10 experiments. altHyp != null marks the 2 cross-cutter experiments.
+    const EXPS = [
+      { id: 0, hyp: 0, y: 70,  duration: 8,  altHyp: null },
+      { id: 1, hyp: 1, y: 145, duration: 15, altHyp: null },
+      { id: 2, hyp: 1, y: 175, duration: 6,  altHyp: 2 },   // cross-cutter: selectivity + PK/PD
+      { id: 3, hyp: 2, y: 240, duration: 22, altHyp: null },
+      { id: 4, hyp: 3, y: 295, duration: 10, altHyp: null },
+      { id: 5, hyp: 3, y: 320, duration: 28, altHyp: null },
+      { id: 6, hyp: 3, y: 345, duration: 18, altHyp: null },
+      { id: 7, hyp: 4, y: 390, duration: 12, altHyp: 3 },   // cross-cutter: safety + translation
+      { id: 8, hyp: 4, y: 420, duration: 25, altHyp: null },
+      { id: 9, hyp: 4, y: 450, duration: 5,  altHyp: null },
+    ];
+    const KIND_COLOR = {
+      neg:   'rgba(248, 113, 113, 0.85)',
+      null_: 'rgba(251, 191, 36, 0.75)',
+      pos:   'rgba(34, 197, 94, 0.85)',
     };
-    // Top-K picked by E[ΔP(TPP)]/E[T]. e1 (fast, h0+h1) + e4 (slow but
-    // covers h2+h3) → together cover all 4 hypotheses in 2 experiments.
-    const SCHEDULED = [1, 4];
+    // Pre-seeded impact magnitudes (0-1) so layout / selection is reproducible
+    // across loops and across machines.
+    const IMPACT_SEED = [
+      0.85, 0.30, 0.92, 0.42, 0.35, 0.78, 0.75, 0.22, 0.88, 0.55,
+      0.40, 0.62, 0.30, 0.18, 0.40, 0.95, 0.65, 0.85, 0.50, 0.32,
+      0.58, 0.80, 0.45, 0.72, 0.62, 0.28, 0.50, 0.40, 0.20, 0.45,
+    ];
+    const OUTCOMES = [];
+    EXPS.forEach((exp, i) => {
+      ['neg', 'null_', 'pos'].forEach((kind, j) => {
+        const oi = i * 3 + j;
+        OUTCOMES.push({
+          id: oi, expId: exp.id, kind,
+          x: 320, y: exp.y - 7 + j * 7,
+          impact: IMPACT_SEED[oi],
+        });
+      });
+    });
 
-    // ---- element refs ----
-    const phaseEls = {
-      hypo:     svg.querySelector('.phase-hypothesize'),
-      exp:      svg.querySelector('.phase-experiment'),
-      project:  svg.querySelector('.phase-project'),
-      schedule: svg.querySelector('.phase-schedule'),
+    // 18 combination pairs (random-looking but reproducible).
+    const COMBO_PAIRS = [
+      [2, 7], [5, 12], [8, 15], [3, 14], [11, 22], [4, 19],
+      [16, 25], [1, 9], [6, 18], [13, 21], [17, 28], [0, 10],
+      [20, 26], [7, 23], [12, 27], [9, 19], [15, 24], [3, 11],
+    ];
+
+    // Top-K selection by impact / duration (where duration is the
+    // experiment's, since outcomes within an experiment share a duration).
+    const SELECTED_IDS = OUTCOMES
+      .map(o => ({ id: o.id, score: o.impact / EXPS[o.expId].duration }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5)
+      .map(x => x.id);
+    const SELECTED_SET = new Set(SELECTED_IDS);
+
+    // ---- Stage-4 layout ----
+    const PAIR_LIST_X_EXP = 130;
+    const PAIR_LIST_X_OUT = 175;
+    const PAIR_Y_START    = 65;
+    const PAIR_Y_SPACING  = 13.5;   // 30 rows × 13.5 = 405; fits in y=[65, 470]
+    const TIME_AXIS_X_MIN = 80;
+    const TIME_AXIS_X_MAX = 350;
+    const MIN_DUR = 5, MAX_DUR = 28;
+    function durationToX(d) {
+      const t = (d - MIN_DUR) / (MAX_DUR - MIN_DUR);
+      return TIME_AXIS_X_MIN + 30 + t * (TIME_AXIS_X_MAX - TIME_AXIS_X_MIN - 30);
+    }
+
+    // ---- Outcome sweep schedule (S3): geometric decay 0.40 → 0.04 ----
+    // First 3 are perceivably slow; remaining 27 ramp to a blur, signalling
+    // "this is computational reasoning, not human-paced inspection."
+    function buildSweepSchedule() {
+      const N = OUTCOMES.length;
+      const total = PH.S3.e - PH.S3.s;
+      const t0 = 0.40, tn = 0.04;
+      const r = Math.pow(tn / t0, 1 / (N - 1));
+      const durs = Array.from({length: N}, (_, i) => t0 * Math.pow(r, i));
+      const sum = durs.reduce((a, b) => a + b, 0);
+      const scale = total / sum;
+      const slots = [];
+      let cum = 0;
+      durs.forEach(d => {
+        slots.push({ start: cum * scale, end: (cum + d) * scale });
+        cum += d;
+      });
+      return slots;
+    }
+    const SWEEP = buildSweepSchedule();
+
+    // ---- Build SVG elements (one-time, at init) ----
+    function mk(tag, attrs) {
+      const el = document.createElementNS(SVG_NS, tag);
+      for (const k in attrs) el.setAttribute(k, attrs[k]);
+      return el;
+    }
+    const grp = {
+      hypTpp:    svg.querySelector('.hyp-tpp-dotlines'),
+      hypState:  svg.querySelector('.hyp-state-lines'),
+      hypLabels: svg.querySelector('.hyp-labels'),
+      hyps:      svg.querySelector('.hypotheses'),
+      expHyp:    svg.querySelector('.exp-hyp-lines'),
+      exps:      svg.querySelector('.experiments'),
+      expOut:    svg.querySelector('.exp-outcome-lines'),
+      outcomes:  svg.querySelector('.outcomes'),
+      combos:    svg.querySelector('.combinations'),
+      timeAxis:  svg.querySelector('.time-axis'),
+      pairRows:  svg.querySelector('.pair-rows'),
+      halos:     svg.querySelector('.selection-halos'),
     };
-    const hypEls      = [0,1,2,3].map(i => svg.querySelector(`.hyp[data-h="${i}"]`));
-    const hypLabelEls = [0,1,2,3].map(i => svg.querySelector(`.hyp-label[data-h="${i}"]`));
-    const hypGlowEls  = [0,1,2,3].map(i => svg.querySelector(`.hyp-glow[data-h="${i}"]`));
-    const expEls      = [0,1,2,3,4,5].map(i => svg.querySelector(`.exp[data-e="${i}"]`));
-    const expShimmerEls = [0,1,2,3,4,5].map(i => svg.querySelector(`.exp-shimmer[data-e="${i}"]`));
-    const expHaloEls  = SCHEDULED.map(i => svg.querySelector(`.exp-halo[data-e="${i}"]`));
-    const connEls     = Array.from(svg.querySelectorAll('.conn'));
-    const barEls      = [0,1,2,3,4,5].map(i => svg.querySelector(`.bar[data-e="${i}"]`));
-    const tppNode     = svg.querySelector('.node.tpp');
-    const statusText  = svg.querySelector('.status');
 
-    // ---- easing helpers ----
-    const easeOut = (t) => 1 - Math.pow(1 - t, 2);
-    const clamp01 = (x) => Math.max(0, Math.min(1, x));
+    // Hyp→TPP dotted (S1 only)
+    const elsHypTpp = HYPS.map(h => {
+      const line = mk('line', { class: 'hyp-tpp', x1: 124, y1: h.y, x2: 342, y2: 250, opacity: 0 });
+      grp.hypTpp.appendChild(line); return line;
+    });
+    // Program→Hyp solid lines
+    const elsState = HYPS.map(h => {
+      const line = mk('line', { class: 'state-hyp', x1: 66, y1: 250, x2: 116, y2: h.y, opacity: 0 });
+      grp.hypState.appendChild(line); return line;
+    });
+    // Hypothesis circles + labels
+    const elsHyp = HYPS.map(h => {
+      const c = mk('circle', { class: 'hyp', 'data-h': h.id, cx: 120, cy: h.y, r: 5.5, opacity: 0 });
+      grp.hyps.appendChild(c); return c;
+    });
+    const elsHypLabel = HYPS.map(h => {
+      const t = mk('text', { class: 'hyp-label', 'data-h': h.id, x: 120, y: h.y - 10, opacity: 0 });
+      t.textContent = h.label;
+      grp.hypLabels.appendChild(t); return t;
+    });
+    // Exp→Hyp lines (primary + cross-cutter when present)
+    const elsExpHyp = EXPS.map(exp => {
+      const lines = [];
+      const primary = mk('line', { class: 'exp-hyp', 'data-e': exp.id, x1: 125, y1: HYPS[exp.hyp].y, x2: 216, y2: exp.y, opacity: 0 });
+      grp.expHyp.appendChild(primary);
+      lines.push({ line: primary, hypId: exp.hyp });
+      if (exp.altHyp !== null) {
+        const alt = mk('line', { class: 'exp-hyp cross', 'data-e': exp.id, x1: 125, y1: HYPS[exp.altHyp].y, x2: 216, y2: exp.y, opacity: 0 });
+        grp.expHyp.appendChild(alt);
+        lines.push({ line: alt, hypId: exp.altHyp });
+      }
+      return lines;
+    });
+    // Experiment dots
+    const elsExp = EXPS.map(exp => {
+      const c = mk('circle', { class: 'exp', 'data-e': exp.id, cx: 220, cy: exp.y, r: 3.5, opacity: 0 });
+      grp.exps.appendChild(c); return c;
+    });
+    // Exp→Outcome dotted lines + outcome circles
+    const elsExpOut = [];
+    const elsOutcome = [];
+    OUTCOMES.forEach(o => {
+      const exp = EXPS[o.expId];
+      const line = mk('line', { class: 'exp-outcome', 'data-o': o.id, x1: 224, y1: exp.y, x2: 314, y2: o.y, opacity: 0 });
+      grp.expOut.appendChild(line);
+      elsExpOut.push(line);
+      const c = mk('circle', { class: 'outcome', 'data-o': o.id, 'data-kind': o.kind, cx: o.x, cy: o.y, r: 2.8, fill: KIND_COLOR[o.kind], opacity: 0 });
+      grp.outcomes.appendChild(c);
+      elsOutcome.push(c);
+    });
 
-    function setPhaseStrip(active) {
-      Object.values(phaseEls).forEach(el => el.classList.remove('is-active', 'is-past'));
-      const order = ['hypo', 'exp', 'project', 'schedule'];
-      const idx = order.indexOf(active);
-      order.forEach((k, i) => {
-        if (i < idx) phaseEls[k].classList.add('is-past');
-        if (i === idx) phaseEls[k].classList.add('is-active');
+    // Stage-4 pair rows
+    const elsPairExp = [], elsPairOut = [], elsPairLink = [];
+    OUTCOMES.forEach((o, i) => {
+      const rowY = PAIR_Y_START + i * PAIR_Y_SPACING;
+      const link = mk('line', { class: 'pair-link', x1: PAIR_LIST_X_EXP, y1: rowY, x2: PAIR_LIST_X_OUT - 4, y2: rowY, opacity: 0 });
+      grp.pairRows.appendChild(link);
+      elsPairLink.push(link);
+      const ec = mk('circle', { class: 'pair-exp', 'data-o': o.id, cx: PAIR_LIST_X_EXP, cy: rowY, r: 3, opacity: 0 });
+      grp.pairRows.appendChild(ec);
+      elsPairExp.push(ec);
+      const a = 0.25 + o.impact * 0.70;
+      const os = mk('rect', { class: 'pair-out', 'data-o': o.id, x: PAIR_LIST_X_OUT - 4, y: rowY - 4, width: 8, height: 8, fill: `rgba(34, 197, 94, ${a.toFixed(2)})`, opacity: 0 });
+      grp.pairRows.appendChild(os);
+      elsPairOut.push(os);
+    });
+
+    // Combination curves (drawn to the LEFT of pair experiments)
+    const elsCombo = COMBO_PAIRS.map(([a, b]) => {
+      const yA = PAIR_Y_START + a * PAIR_Y_SPACING;
+      const yB = PAIR_Y_START + b * PAIR_Y_SPACING;
+      const midY = (yA + yB) / 2;
+      const arch = Math.min(30, Math.abs(b - a) * 1.5);
+      const d = `M ${PAIR_LIST_X_EXP - 4} ${yA} Q ${PAIR_LIST_X_EXP - 4 - arch} ${midY} ${PAIR_LIST_X_EXP - 4} ${yB}`;
+      const path = mk('path', { class: 'combination', d, opacity: 0 });
+      grp.combos.appendChild(path);
+      return path;
+    });
+
+    // Time axis (line + arrow + 'time' label)
+    const axisLine = mk('line', { x1: TIME_AXIS_X_MIN, y1: 30, x2: TIME_AXIS_X_MAX + 10, y2: 30, 'stroke-width': 0.8, opacity: 0 });
+    const axisArrow = mk('path', { d: `M ${TIME_AXIS_X_MAX + 8} 28 L ${TIME_AXIS_X_MAX + 14} 30 L ${TIME_AXIS_X_MAX + 8} 32 Z`, opacity: 0 });
+    const axisLabel = mk('text', { x: TIME_AXIS_X_MAX, y: 22, 'text-anchor': 'end', opacity: 0 });
+    axisLabel.textContent = 'time';
+    grp.timeAxis.appendChild(axisLine);
+    grp.timeAxis.appendChild(axisArrow);
+    grp.timeAxis.appendChild(axisLabel);
+
+    // Selection halos — one per outcome (positioned + revealed in S4C)
+    const elsHalo = OUTCOMES.map(o => {
+      const h = mk('circle', { class: 'selection-halo', 'data-o': o.id, cx: 0, cy: 0, r: 10, fill: 'url(#selection-glow)', opacity: 0 });
+      grp.halos.appendChild(h); return h;
+    });
+
+    // Persistent node refs
+    const tppNode = svg.querySelector('.tpp-node');
+    const programNode = svg.querySelector('.program-node');
+    const flashEl = svg.querySelector('.outcome-flash');
+    const captionEl = svg.querySelector('.stage-caption');
+
+    // ---- Easing + helpers ----
+    const easeOut   = (t) => 1 - Math.pow(1 - t, 2);
+    const easeInOut = (t) => t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t + 2, 2) / 2;
+    const clamp01   = (x) => Math.max(0, Math.min(1, x));
+    const lerp      = (a, b, t) => a + (b - a) * t;
+
+    // ---- Sweep highlight (S3): show outcome i's "what would we learn" ----
+    function applySweepHighlight(i) {
+      const o = OUTCOMES[i];
+      const exp = EXPS[o.expId];
+      const kindClass = o.kind === 'pos' ? 'is-pos' : (o.kind === 'neg' ? 'is-neg' : 'is-null');
+
+      // Flash halo on the active outcome
+      flashEl.setAttribute('cx', o.x);
+      flashEl.setAttribute('cy', o.y);
+      flashEl.setAttribute('opacity', 0.85);
+
+      // Outcome circles: active enlarges + brightens; siblings of same exp
+      // dim hardest (outcome alternatives that won't occur if THIS is true);
+      // siblings of same hypothesis dim moderately (redundant experiments);
+      // rest unchanged.
+      elsOutcome.forEach((el, j) => {
+        if (j === i) { el.setAttribute('r', 4.2); el.setAttribute('opacity', 1); }
+        else {
+          const oj = OUTCOMES[j];
+          el.setAttribute('r', 2.8);
+          if (oj.expId === o.expId)              el.setAttribute('opacity', 0.32);
+          else if (EXPS[oj.expId].hyp === exp.hyp) el.setAttribute('opacity', 0.55);
+          else                                    el.setAttribute('opacity', 0.85);
+        }
+      });
+
+      // Outcome→exp lines, colored by kind on the active path
+      elsExpOut.forEach((el, j) => {
+        el.classList.remove('is-pos', 'is-null', 'is-neg');
+        const oj = OUTCOMES[j];
+        if (j === i) { el.classList.add(kindClass); el.setAttribute('opacity', 1); }
+        else if (oj.expId === o.expId)              el.setAttribute('opacity', 0.30);
+        else if (EXPS[oj.expId].hyp === exp.hyp) el.setAttribute('opacity', 0.50);
+        else                                       el.setAttribute('opacity', 0.70);
+      });
+
+      // Experiment dots
+      elsExp.forEach((el, j) => {
+        const e = EXPS[j];
+        if (j === o.expId)             { el.setAttribute('r', 4.5); el.setAttribute('opacity', 1); }
+        else if (e.hyp === exp.hyp)    { el.setAttribute('r', 3.5); el.setAttribute('opacity', 0.55); }
+        else                           { el.setAttribute('r', 3.5); el.setAttribute('opacity', 0.85); }
+      });
+
+      // Exp→hyp lines
+      elsExpHyp.forEach((lines, j) => {
+        lines.forEach(({ line }) => {
+          line.classList.remove('is-pos', 'is-null', 'is-neg');
+          if (j === o.expId) { line.classList.add(kindClass); line.setAttribute('opacity', 1); }
+          else if (EXPS[j].hyp === exp.hyp || EXPS[j].altHyp === exp.hyp) line.setAttribute('opacity', 0.45);
+          else                                                              line.setAttribute('opacity', 0.70);
+        });
+      });
+
+      // Hypothesis ring: pulse the touched hypothesis (primary + cross alt)
+      elsHyp.forEach((el, j) => {
+        if (j === exp.hyp || (exp.altHyp !== null && j === exp.altHyp)) {
+          el.setAttribute('stroke', 'rgba(255, 255, 255, 0.95)');
+          el.setAttribute('stroke-width', 1.6);
+          el.setAttribute('r', 6.5);
+        } else {
+          el.setAttribute('stroke', 'rgba(6, 182, 212, 0.85)');
+          el.setAttribute('stroke-width', 1.3);
+          el.setAttribute('r', 5.5);
+        }
       });
     }
 
-    function tick(t) {
-      // ---- 1. Phase strip ----
-      let activePhase;
-      if      (t < PH.HYPO.e)     activePhase = 'hypo';
-      else if (t < PH.EXP.e)      activePhase = 'exp';
-      else if (t < PH.PROJECT.e)  activePhase = 'project';
-      else                        activePhase = 'schedule'; // SCHEDULE + HOLD + FADE
-      setPhaseStrip(activePhase);
-
-      // ---- 2. Hypotheses fade in during HYPO, stay, fade out during FADE ----
-      let hypO = 0;
-      if (t < PH.HYPO.e) {
-        hypO = easeOut(t / PH.HYPO.e);
-      } else if (t < PH.FADE.s) {
-        hypO = 1;
-      } else {
-        hypO = 1 - clamp01((t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
-      }
-      hypEls.forEach(el => el.style.opacity = hypO);
-      hypLabelEls.forEach(el => el.style.opacity = hypO * 0.85);
-
-      // ---- 3. Experiments + connections fade in during EXP, stay, fade out ----
-      let expO = 0, connO = 0;
-      if (t < PH.EXP.s) {
-        expO = 0; connO = 0;
-      } else if (t < PH.EXP.e) {
-        const p = easeOut((t - PH.EXP.s) / (PH.EXP.e - PH.EXP.s));
-        expO = p; connO = p;
-      } else if (t < PH.FADE.s) {
-        expO = 1; connO = 1;
-      } else {
-        const p = 1 - clamp01((t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
-        expO = p; connO = p;
-      }
-      expEls.forEach(el => el.style.opacity = expO);
-      connEls.forEach(el => el.style.opacity = connO);
-
-      // ---- 4. PROJECT shimmer wave: highlight one experiment at a time ----
-      // Reset per-frame transient classes (cleared each tick so they don't
-      // leak across phases).
-      expEls.forEach(el => el.classList.remove('is-shimmering'));
-      expShimmerEls.forEach(el => el.style.opacity = 0);
-      connEls.forEach(el => el.classList.remove('is-active'));
-      hypEls.forEach(el => el.classList.remove('is-pulsing'));
-
-      if (t >= PH.PROJECT.s && t < PH.PROJECT.e) {
-        const p = (t - PH.PROJECT.s) / (PH.PROJECT.e - PH.PROJECT.s);
-        // 6 experiments share the PROJECT duration; each gets ~1/6.
-        const slot = p * 6;
-        const activeIdx = Math.min(5, Math.floor(slot));
-        const fraction = slot - activeIdx;
-        // Shimmer is active for the first 70% of each slot, fades the last 30%.
-        const shimmerAmount = fraction < 0.7
-          ? 1
-          : Math.max(0, 1 - (fraction - 0.7) / 0.3);
-        if (shimmerAmount > 0.05) {
-          expEls[activeIdx].classList.add('is-shimmering');
-          expShimmerEls[activeIdx].style.opacity = 0.85 * shimmerAmount;
-          // Light up THIS experiment's connections + the connected hypotheses.
-          const touchedHyp = E_TO_H[activeIdx];
-          connEls.forEach(el => {
-            const [e] = el.getAttribute('data-conn').split('-').map(Number);
-            if (e === activeIdx) el.classList.add('is-active');
-          });
-          touchedHyp.forEach(hi => hypEls[hi].classList.add('is-pulsing'));
-        }
-      }
-
-      // ---- 5. SCHEDULE: time bars, selected experiments, resolved hypotheses ----
-      // Reset SCHEDULE-affected classes
-      expEls.forEach(el => el.classList.remove('is-selected'));
-      connEls.forEach(el => el.classList.remove('is-selected'));
-      hypEls.forEach(el => el.classList.remove('is-resolved'));
-      hypLabelEls.forEach(el => el.classList.remove('is-resolved'));
-      barEls.forEach(el => el.classList.remove('is-selected'));
-      expHaloEls.forEach(el => el.style.opacity = 0);
-      hypGlowEls.forEach(el => el.style.opacity = 0);
-
-      let barO = 0;
-      if (t >= PH.SCHEDULE.s && t < PH.FADE.s) {
-        // Bars fade in over first 0.6s of SCHEDULE.
-        barO = easeOut(clamp01((t - PH.SCHEDULE.s) / 0.6));
-        // Selection effects ramp in over the next 0.8s (slightly delayed so
-        // the bars register first, then the top-K announcement lands).
-        const selP = easeOut(clamp01((t - PH.SCHEDULE.s - 0.3) / 0.9));
-        SCHEDULED.forEach((ei, idx) => {
-          expEls[ei].classList.add('is-selected');
-          expHaloEls[idx].style.opacity = selP * 0.75;
-          barEls[ei].classList.add('is-selected');
-          // Brighten the connections and resolve the hypotheses this experiment touches.
-          E_TO_H[ei].forEach(hi => {
-            hypEls[hi].classList.add('is-resolved');
-            hypLabelEls[hi].classList.add('is-resolved');
-            hypGlowEls[hi].style.opacity = selP * 0.55;
-          });
-          connEls.forEach(el => {
-            const [e] = el.getAttribute('data-conn').split('-').map(Number);
-            if (e === ei) el.classList.add('is-selected');
-          });
-        });
-      } else if (t >= PH.FADE.s) {
-        barO = 1 - clamp01((t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
-      }
-      barEls.forEach(el => el.style.opacity = barO);
-
-      // ---- 6. TPP lights up in SCHEDULE because belief has shifted ----
-      tppNode.classList.toggle('is-lit', t >= PH.SCHEDULE.s && t < PH.FADE.s);
-
-      // ---- 7. Status line ----
-      let txt;
-      if      (t < PH.HYPO.e)     txt = 'open hypotheses · 4 gaps between current state and TPP';
-      else if (t < PH.EXP.e)      txt = 'candidate experiments · 6 designed to address them';
-      else if (t < PH.PROJECT.e)  txt = 'projecting outcomes · expected ΔP(TPP) per experiment';
-      else                        txt = '2 scheduled · joint coverage of all 4 hypotheses · max ΔP(TPP) / T';
-      if (statusText.textContent !== txt) statusText.textContent = txt;
+    function resetTreeToDefault() {
+      flashEl.setAttribute('opacity', 0);
+      elsOutcome.forEach(el => { el.setAttribute('r', 2.8); el.setAttribute('opacity', 1); });
+      elsExpOut.forEach(el => { el.classList.remove('is-pos', 'is-null', 'is-neg'); el.setAttribute('opacity', 1); });
+      elsExp.forEach(el => { el.setAttribute('r', 3.5); el.setAttribute('opacity', 1); });
+      elsExpHyp.forEach(lines => lines.forEach(({ line }) => { line.classList.remove('is-pos', 'is-null', 'is-neg'); line.setAttribute('opacity', 1); }));
+      elsHyp.forEach(el => { el.setAttribute('stroke', 'rgba(6, 182, 212, 0.85)'); el.setAttribute('stroke-width', 1.3); el.setAttribute('r', 5.5); });
     }
 
-    // ---- main rAF loop, gated on frame visibility ----
-    let raf = null;
-    let startMs = null;
+    // ---- Stage captions ----
+    const CAPTIONS = {
+      S1:   'hypothesis enumeration · questions that close gaps to TPP',
+      S2:   'experiment design · 3 outcome projections per experiment',
+      S3:   'projecting learning impact across the option space',
+      S4A:  'individual + combination scoring',
+      S4B:  'twin-informed latency · learning per unit time',
+      S4C:  'experiment selection · queued for execution',
+      HOLD: 'experiment selection · queued for execution',
+    };
+
+    // ---- Main tick: state at loop-time t ----
+    function tick(t) {
+      // Stage detection
+      let stage;
+      if (t < PH.S1.e)        stage = 'S1';
+      else if (t < PH.S2.e)   stage = 'S2';
+      else if (t < PH.S3.e)   stage = 'S3';
+      else if (t < PH.S4A.e)  stage = 'S4A';
+      else if (t < PH.S4B.e)  stage = 'S4B';
+      else if (t < PH.S4C.e)  stage = 'S4C';
+      else                    stage = 'HOLD';
+
+      // Caption
+      if (captionEl.textContent !== CAPTIONS[stage]) captionEl.textContent = CAPTIONS[stage];
+
+      // ----- Hypothesis layer (always 1 during S2-S3, fades during S1 in and S4A out) -----
+      let hypO = 0;
+      if (t < PH.S1.e)               hypO = easeOut(t / PH.S1.e);
+      else if (t < PH.S4A.s)         hypO = 1;
+      else if (t < PH.S4A.s + 0.4)   hypO = 1 - easeOut((t - PH.S4A.s) / 0.4);
+      else                           hypO = 0;
+      elsHyp.forEach(el => el.setAttribute('opacity', hypO));
+      elsHypLabel.forEach(el => el.setAttribute('opacity', hypO * 0.85));
+      elsState.forEach(el => el.setAttribute('opacity', hypO));
+
+      // ----- Program state node — visible through tree stages, fades at S4A -----
+      let progO = 1;
+      if (t < PH.S4A.s)              progO = 1;
+      else if (t < PH.S4A.s + 0.4)   progO = 1 - easeOut((t - PH.S4A.s) / 0.4);
+      else                           progO = 0;
+      programNode.setAttribute('opacity', progO);
+
+      // ----- Hyp→TPP dotted (S1 only; fades out at S2 start) -----
+      let hypTppO = 0;
+      if (t < PH.S1.e)                hypTppO = easeOut(t / PH.S1.e);
+      else if (t < PH.S2.s + 0.5)     hypTppO = 1 - easeOut((t - PH.S2.s) / 0.5);
+      elsHypTpp.forEach(el => el.setAttribute('opacity', hypTppO * 0.6));
+
+      // ----- TPP node (matches the dotted lines: visible S1, fades at S2 start) -----
+      let tppO = 0;
+      if (t < PH.S1.e)                tppO = easeOut(t / PH.S1.e);
+      else if (t < PH.S2.s + 0.5)     tppO = 1 - easeOut((t - PH.S2.s) / 0.5);
+      tppNode.setAttribute('opacity', tppO);
+
+      // ----- Tree layer (experiments + outcomes) per stage -----
+      // S2: ramp in. S3: full. S4A start: snap-fade out over 0.4s so the
+      // pair rows can appear cleanly with no overlap.
+      let expO = 0, outO = 0;
+      if (t < PH.S2.s)                  { expO = 0; outO = 0; }
+      else if (t < PH.S2.s + 0.8)       { expO = easeOut((t - PH.S2.s) / 0.8); outO = 0; }
+      else if (t < PH.S2.e)             { expO = 1; outO = easeOut((t - PH.S2.s - 0.8) / (PH.S2.e - PH.S2.s - 0.8)); }
+      else if (t < PH.S4A.s)            { expO = 1; outO = 1; }
+      else if (t < PH.S4A.s + 0.4)      { const p = 1 - easeOut((t - PH.S4A.s) / 0.4); expO = p; outO = p; }
+      else                              { expO = 0; outO = 0; }
+
+      if (stage === 'S3') {
+        // Sweep mode — applySweepHighlight handles per-element state
+        const s3T = t - PH.S3.s;
+        let activeIdx = -1;
+        for (let i = 0; i < SWEEP.length; i++) {
+          if (s3T >= SWEEP[i].start && s3T < SWEEP[i].end) { activeIdx = i; break; }
+        }
+        if (activeIdx === -1 && s3T >= SWEEP[SWEEP.length - 1].end) activeIdx = SWEEP.length - 1;
+        if (activeIdx >= 0) applySweepHighlight(activeIdx);
+      } else {
+        resetTreeToDefault();
+        elsExp.forEach(el => el.setAttribute('opacity', expO));
+        elsExpHyp.forEach(lines => lines.forEach(({ line }) => line.setAttribute('opacity', expO * 0.85)));
+        elsExpOut.forEach(el => el.setAttribute('opacity', outO * 0.85));
+        elsOutcome.forEach(el => el.setAttribute('opacity', outO));
+      }
+
+      // ----- Stage-4 pair rows ----- (start fading in AFTER tree finishes fading out)
+      let pairO = 0;
+      if (t < PH.S4A.s + 0.45)        pairO = 0;
+      else if (t < PH.S4A.e)          pairO = easeOut((t - PH.S4A.s - 0.45) / (PH.S4A.e - PH.S4A.s - 0.45));
+      else if (t < PH.HOLD.e)         pairO = 1;
+
+      OUTCOMES.forEach((o, i) => {
+        const isStage4 = (stage === 'S4A' || stage === 'S4B' || stage === 'S4C' || stage === 'HOLD');
+        if (!isStage4) {
+          elsPairExp[i].setAttribute('opacity', 0);
+          elsPairOut[i].setAttribute('opacity', 0);
+          elsPairLink[i].setAttribute('opacity', 0);
+          return;
+        }
+        const exp = EXPS[o.expId];
+        const rowY = PAIR_Y_START + i * PAIR_Y_SPACING;
+        const listXExp = PAIR_LIST_X_EXP;
+        const listXOut = PAIR_LIST_X_OUT;
+        const timeXExp = TIME_AXIS_X_MIN;
+        const timeXOut = durationToX(exp.duration);
+        // S4A: list layout. S4B: tween toward time-axis layout. S4C/HOLD: full time-axis layout.
+        let s4bP = 0;
+        if (stage === 'S4B')              s4bP = easeInOut((t - PH.S4B.s) / (PH.S4B.e - PH.S4B.s));
+        else if (stage === 'S4C' || stage === 'HOLD') s4bP = 1;
+        const xExp = lerp(listXExp, timeXExp, s4bP);
+        const xOut = lerp(listXOut, timeXOut, s4bP);
+        // S4C: dim non-selected pairs
+        let opacity = pairO;
+        if (stage === 'S4C') {
+          const dimP = easeOut(clamp01((t - PH.S4C.s) / 0.8));
+          if (!SELECTED_SET.has(i)) opacity = pairO * (1 - dimP * 0.80);
+        } else if (stage === 'HOLD') {
+          if (!SELECTED_SET.has(i)) opacity = pairO * 0.20;
+        }
+        elsPairExp[i].setAttribute('cx', xExp);
+        elsPairExp[i].setAttribute('cy', rowY);
+        elsPairExp[i].setAttribute('opacity', opacity);
+        elsPairOut[i].setAttribute('x', xOut - 4);
+        elsPairOut[i].setAttribute('y', rowY - 4);
+        elsPairOut[i].setAttribute('opacity', opacity);
+        elsPairLink[i].setAttribute('x1', xExp);
+        elsPairLink[i].setAttribute('y1', rowY);
+        elsPairLink[i].setAttribute('x2', xOut - 4);
+        elsPairLink[i].setAttribute('y2', rowY);
+        elsPairLink[i].setAttribute('opacity', opacity * 0.5);
+      });
+
+      // ----- Combinations: visible mostly in S4A; thin in S4B; fade in S4C -----
+      let comboO = 0;
+      if (stage === 'S4A') {
+        const p = clamp01((t - PH.S4A.s - 0.8) / (PH.S4A.e - PH.S4A.s - 0.8));
+        comboO = easeOut(p) * 0.70;
+      } else if (stage === 'S4B') {
+        comboO = 0.45;
+      } else if (stage === 'S4C') {
+        const fadeP = easeOut(clamp01((t - PH.S4C.s) / 0.8));
+        comboO = 0.45 * (1 - fadeP * 0.85);
+      } else if (stage === 'HOLD') {
+        comboO = 0.07;
+      }
+      elsCombo.forEach(el => el.setAttribute('opacity', comboO));
+
+      // ----- Time axis (S4B, S4C, HOLD) -----
+      let axisO = 0;
+      if (stage === 'S4B')                          axisO = easeOut(clamp01((t - PH.S4B.s) / 0.5));
+      else if (stage === 'S4C' || stage === 'HOLD') axisO = 1;
+      axisLine.setAttribute('opacity', axisO);
+      axisArrow.setAttribute('opacity', axisO);
+      axisLabel.setAttribute('opacity', axisO * 0.75);
+
+      // ----- Selection halos (S4C, HOLD) on selected pairs only -----
+      elsHalo.forEach((el, i) => {
+        if ((stage === 'S4C' || stage === 'HOLD') && SELECTED_SET.has(i)) {
+          const exp = EXPS[OUTCOMES[i].expId];
+          const timeXOut = durationToX(exp.duration);
+          const rowY = PAIR_Y_START + i * PAIR_Y_SPACING;
+          const midX = (TIME_AXIS_X_MIN + timeXOut) / 2;
+          el.setAttribute('cx', midX);
+          el.setAttribute('cy', rowY);
+          const haloP = stage === 'S4C'
+            ? easeOut(clamp01((t - PH.S4C.s - 0.3) / 0.7))
+            : 1;
+          el.setAttribute('opacity', haloP * 0.75);
+        } else {
+          el.setAttribute('opacity', 0);
+        }
+      });
+    }
+
+    // ---- rAF loop, gated on frame visibility ----
+    let raf = null, startMs = null;
     function loop(ms) {
       if (startMs == null) startMs = ms;
       tick(((ms - startMs) / 1000) % LOOP);
       raf = requestAnimationFrame(loop);
     }
-
     const frame5 = document.getElementById('frame-5');
-    const obs = new IntersectionObserver((entries) => {
+    const obs = new IntersectionObserver(entries => {
       entries.forEach(entry => {
         if (entry.isIntersecting && entry.intersectionRatio > 0.25) {
-          if (raf == null) {
-            startMs = null;
-            raf = requestAnimationFrame(loop);
-          }
+          if (raf == null) { startMs = null; raf = requestAnimationFrame(loop); }
         } else {
           if (raf != null) { cancelAnimationFrame(raf); raf = null; }
         }
@@ -2554,31 +2859,10 @@
     }, { threshold: [0.25] });
     obs.observe(frame5);
 
-    // ---- reduced-motion: render the final SCHEDULE state statically ----
+    // Reduced motion: snap to the final S4C selection state.
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       obs.disconnect();
-      // Hypotheses + labels at full opacity, all resolved
-      hypEls.forEach((el, i) => {
-        el.style.opacity = 1;
-        el.classList.add('is-resolved');
-      });
-      hypLabelEls.forEach(el => { el.style.opacity = 0.85; el.classList.add('is-resolved'); });
-      hypGlowEls.forEach(el => el.style.opacity = 0.55);
-      expEls.forEach(el => el.style.opacity = 1);
-      connEls.forEach(el => el.style.opacity = 1);
-      // Selected experiments lit
-      SCHEDULED.forEach((ei, idx) => {
-        expEls[ei].classList.add('is-selected');
-        expHaloEls[idx].style.opacity = 0.75;
-        barEls[ei].classList.add('is-selected');
-        connEls.forEach(el => {
-          const [e] = el.getAttribute('data-conn').split('-').map(Number);
-          if (e === ei) el.classList.add('is-selected');
-        });
-      });
-      barEls.forEach(el => el.style.opacity = 1);
-      tppNode.classList.add('is-lit');
-      statusText.textContent = '2 scheduled · joint coverage of all 4 hypotheses · max ΔP(TPP) / T';
+      tick(11.0);
     }
   })();
 </script>
