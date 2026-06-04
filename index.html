@@ -294,10 +294,12 @@
   #frame-2 .vs-col li { font-size: 12px; line-height: 1.35; }
   #frame-2 .vs-col .verdict { padding-top: 8px; margin-top: 10px; font-size: 11.5px; }
 
-  /* Frame 5 — minor compression (47px over): trim padding + headline. */
+  /* Frame 5 — minor compression (47px over): trim padding + headline.
+     The lede goes full-width so it wraps to 1-2 lines and gives the
+     three diagrams below more vertical room. */
   #frame-5 .frame-inner { padding: 56px 56px 36px; }
   #frame-5 .frame-headline { font-size: 38px; line-height: 1.1; margin: 0 0 10px; }
-  #frame-5 .frame-lede { font-size: 16px; line-height: 1.5; }
+  #frame-5 .frame-lede { font-size: 16px; line-height: 1.5; max-width: none; }
   .track-row {
     position: relative;
     display: grid;
@@ -907,10 +909,10 @@
 
   /* Hypothesis label */
   .outcomes-sankey.boed .hyp-label {
-    fill: rgba(255,255,255,0.55);
+    fill: rgba(255,255,255,0.65);
     font-family: var(--mono);
-    font-size: 6.5px;
-    letter-spacing: 0.6px;
+    font-size: 9.5px;
+    letter-spacing: 0.5px;
     text-anchor: middle;
   }
 
@@ -962,6 +964,25 @@
 
   /* Outcome flash highlight (the moving spotlight during S3 sweep) */
   .outcomes-sankey.boed .outcome-flash { transition: opacity 0.08s linear; }
+
+  /* ============================================================
+     DUAL-SIM ARC — Frame 5 fusion card.
+     4 stages: Simulate → Execute → Realize → Decide, with 1s holds.
+     ============================================================ */
+  .dual-sim-arc circle,
+  .dual-sim-arc rect,
+  .dual-sim-arc line,
+  .dual-sim-arc path,
+  .dual-sim-arc text,
+  .dual-sim-arc g {
+    transition: opacity 0.25s ease;
+  }
+  /* Slow the transition slightly during stage transitions when JS sets
+     a longer transition explicitly (not used yet, but reserved). */
+  .dual-sim-arc .stage-name { font-weight: 700; }
+  .dual-sim-arc .stage-dt   { fill: rgba(255,255,255,0.55); }
+  .dual-sim-arc .col-label  { fill: rgba(255,255,255,0.65); }
+  .dual-sim-arc .hist-inset text { transition: opacity 0.4s ease; }
 
   /* ============================================================
      FRAME 03 — MOAT + MODEL — text two-column
@@ -1961,7 +1982,7 @@
               <g class="selection-halos"></g>
 
               <!-- Stage caption (bottom). JS rewrites textContent per stage. -->
-              <text class="stage-caption" x="200" y="490" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" letter-spacing="1.3" fill="rgba(255,255,255,0.50)">.</text>
+              <text class="stage-caption" x="200" y="490" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" letter-spacing="1.2" fill="rgba(255,255,255,0.60)">.</text>
             </svg>
           </div>
         </div>
@@ -1972,60 +1993,147 @@
         <div class="dual-card fusion reveal-fade" style="transition-delay: 0.15s;">
           <div class="tag">Hybridization &mdash; one loop</div>
           <div class="twin-chart">
-            <svg viewBox="0 0 360 220" preserveAspectRatio="xMidYMid meet" aria-label="Histogram: Manifest's decision-time bars peak earlier (left); Conventional R&D's bars peak later (right).">
+            <!-- 4-stage Simulate → Execute → Realize → Decide animation.
+                 11.5s loop. Each stage holds 1s after its transitions complete.
+                 S1 Simulate (Δt = minutes):
+                   Hyp → Exp → 3 Outcomes → 3 Decisions, all in DOTTED lines.
+                   Communicates: "we project this whole chain in advance."
+                 S2 Execute (Δt = experiment latency):
+                   Hyp→Exp line goes SOLID (we started running the experiment).
+                   Everything downstream stays dotted (still projected).
+                 S3 Realize (Δt = experiment time):
+                   The experiment finishes; ONE outcome is realized (the
+                   middle / green one). Alternate outcomes + their lines
+                   fade away. Outcome→Decision still dotted.
+                 S4 Decide (Δt = 0):
+                   Outcome→Decision goes SOLID — the decision was preloaded
+                   from the simulation, so it fires with zero additional
+                   latency. Histogram inset (Manifest left-shifted vs
+                   Conventional) fades in to show the population-level
+                   result of doing this many times.
+                 Static fallback / reduced-motion: render the final S4 state. -->
+            <svg class="dual-sim-arc" viewBox="0 0 600 260" preserveAspectRatio="xMidYMid meet" aria-label="Per-experiment decision arc: simulate, execute, realize, decide. The decision-time histogram appears in stage 4.">
+              <defs>
+                <radialGradient id="arc-hyp-glow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.55"/>
+                  <stop offset="100%" stop-color="#a78bfa" stop-opacity="0"/>
+                </radialGradient>
+                <radialGradient id="arc-exp-glow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#60a5fa" stop-opacity="0.55"/>
+                  <stop offset="100%" stop-color="#60a5fa" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
 
-              <!-- Plot area: x in [40, 340], y in [25, 180]. Baseline y=180. -->
+              <!-- Stage label (top-left). JS rewrites textContent per stage. -->
+              <text class="stage-name" x="34" y="40" font-family="Space Grotesk, sans-serif" font-size="20" font-weight="700" fill="#ffffff">Simulate</text>
+              <text class="stage-dt"   x="34" y="60" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="0.5" fill="rgba(255,255,255,0.55)">(&Delta;t = minutes)</text>
 
-              <!-- Conventional R&D bars (warm, drawn FIRST so cyan can overlap) -->
-              <!-- Heights: [5, 12, 28, 50, 72, 88, 70, 42, 18] -->
-              <g fill="#fb923c" fill-opacity="0.62" stroke="#fb923c" stroke-width="0.5">
-                <rect x="50"  y="175" width="22" height="5"/>
-                <rect x="80"  y="168" width="22" height="12"/>
-                <rect x="110" y="152" width="22" height="28"/>
-                <rect x="140" y="130" width="22" height="50"/>
-                <rect x="170" y="108" width="22" height="72"/>
-                <rect x="200" y="92"  width="22" height="88"/>
-                <rect x="230" y="110" width="22" height="70"/>
-                <rect x="260" y="138" width="22" height="42"/>
-                <rect x="290" y="162" width="22" height="18"/>
+              <!-- Hypothesis node (purple, persistent) -->
+              <g class="arc-hyp">
+                <circle cx="80" cy="120" r="20" fill="url(#arc-hyp-glow)" opacity="0"/>
+                <circle class="hyp-dot" cx="80" cy="120" r="9" fill="#a78bfa" stroke="#c4b5fd" stroke-width="1.2" opacity="0"/>
+              </g>
+              <!-- Experiment node (blue, persistent) -->
+              <g class="arc-exp">
+                <circle cx="215" cy="120" r="20" fill="url(#arc-exp-glow)" opacity="0"/>
+                <circle class="exp-dot" cx="215" cy="120" r="9" fill="#60a5fa" stroke="#93c5fd" stroke-width="1.2" opacity="0"/>
               </g>
 
-              <!-- Manifest bars (cyan, overlaid with transparency so both stay visible) -->
-              <!-- Heights: [30, 70, 95, 80, 50, 22, 8, 2, 0] -->
-              <g fill="#06b6d4" fill-opacity="0.78" stroke="#06b6d4" stroke-width="0.5">
-                <rect x="50"  y="150" width="22" height="30"/>
-                <rect x="80"  y="110" width="22" height="70"/>
-                <rect x="110" y="85"  width="22" height="95"/>
-                <rect x="140" y="100" width="22" height="80"/>
-                <rect x="170" y="130" width="22" height="50"/>
-                <rect x="200" y="158" width="22" height="22"/>
-                <rect x="230" y="172" width="22" height="8"/>
-                <rect x="260" y="178" width="22" height="2"/>
-                <!-- bin 9 zero height: omit -->
+              <!-- Outcome nodes (3): top=neg, mid=pos, bot=null per user drawing -->
+              <g class="arc-outcomes">
+                <circle class="out-dot out-0" cx="370" cy="70"  r="8" fill="#f87171" stroke="#fca5a5" stroke-width="1.0" opacity="0"/>
+                <circle class="out-dot out-1" cx="370" cy="120" r="8" fill="#4ade80" stroke="#86efac" stroke-width="1.0" opacity="0"/>
+                <circle class="out-dot out-2" cx="370" cy="170" r="8" fill="#fbbf24" stroke="#fde68a" stroke-width="1.0" opacity="0"/>
               </g>
 
-              <!-- Axes -->
-              <line x1="38" y1="180" x2="346" y2="180" stroke="#94a3b8" stroke-width="1.4"/>
-              <line x1="38" y1="20"  x2="38"  y2="180" stroke="#94a3b8" stroke-width="1.4"/>
-              <path d="M 342 177 L 348 180 L 342 183 Z" fill="#94a3b8"/>
-              <path d="M 35 24 L 38 18 L 41 24 Z" fill="#94a3b8"/>
+              <!-- Decision nodes (3): small circles with right-pointing arrow inside -->
+              <g class="arc-decisions">
+                <g class="dec-node dec-0" opacity="0">
+                  <circle cx="520" cy="70" r="9" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.2"/>
+                  <path d="M 517 67 L 524 70 L 517 73 Z" fill="#06b6d4"/>
+                </g>
+                <g class="dec-node dec-1" opacity="0">
+                  <circle cx="520" cy="120" r="9" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.2"/>
+                  <path d="M 517 117 L 524 120 L 517 123 Z" fill="#06b6d4"/>
+                </g>
+                <g class="dec-node dec-2" opacity="0">
+                  <circle cx="520" cy="170" r="9" fill="#0a0e1a" stroke="#06b6d4" stroke-width="1.2"/>
+                  <path d="M 517 167 L 524 170 L 517 173 Z" fill="#06b6d4"/>
+                </g>
+              </g>
 
-              <!-- Axis labels -->
-              <text x="192" y="204" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#94a3b8">time to decision</text>
-              <text x="22" y="102" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#94a3b8" transform="rotate(-90 22 102)">decisions</text>
+              <!-- Connection lines. Each link has a dotted version (visible in
+                   the projected/simulated state) and a solid version (visible
+                   once the link is realized). Opacities crossfade per stage. -->
+              <!-- Hyp ↔ Exp -->
+              <line class="line-dotted line-he" x1="89"  y1="120" x2="206" y2="120" stroke="rgba(167,139,250,0.75)" stroke-width="1.4" stroke-dasharray="3 3" opacity="0"/>
+              <line class="line-solid line-he"  x1="89"  y1="120" x2="206" y2="120" stroke="rgba(167,139,250,0.9)"  stroke-width="1.6" opacity="0"/>
+              <!-- Exp ↔ Outcomes (3) -->
+              <line class="line-dotted line-eo-0" x1="224" y1="120" x2="362" y2="70"  stroke="rgba(96,165,250,0.65)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0"/>
+              <line class="line-dotted line-eo-1" x1="224" y1="120" x2="362" y2="120" stroke="rgba(96,165,250,0.65)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0"/>
+              <line class="line-dotted line-eo-2" x1="224" y1="120" x2="362" y2="170" stroke="rgba(96,165,250,0.65)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0"/>
+              <line class="line-solid  line-eo-0" x1="224" y1="120" x2="362" y2="70"  stroke="rgba(96,165,250,0.95)" stroke-width="1.6" opacity="0"/>
+              <line class="line-solid  line-eo-1" x1="224" y1="120" x2="362" y2="120" stroke="rgba(96,165,250,0.95)" stroke-width="1.6" opacity="0"/>
+              <line class="line-solid  line-eo-2" x1="224" y1="120" x2="362" y2="170" stroke="rgba(96,165,250,0.95)" stroke-width="1.6" opacity="0"/>
+              <!-- Outcomes ↔ Decisions (3) -->
+              <line class="line-dotted line-od-0" x1="378" y1="70"  x2="511" y2="70"  stroke="rgba(148,163,184,0.65)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0"/>
+              <line class="line-dotted line-od-1" x1="378" y1="120" x2="511" y2="120" stroke="rgba(148,163,184,0.65)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0"/>
+              <line class="line-dotted line-od-2" x1="378" y1="170" x2="511" y2="170" stroke="rgba(148,163,184,0.65)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0"/>
+              <line class="line-solid  line-od-0" x1="378" y1="70"  x2="511" y2="70"  stroke="rgba(6,182,212,0.95)"   stroke-width="1.6" opacity="0"/>
+              <line class="line-solid  line-od-1" x1="378" y1="120" x2="511" y2="120" stroke="rgba(6,182,212,0.95)"   stroke-width="1.6" opacity="0"/>
+              <line class="line-solid  line-od-2" x1="378" y1="170" x2="511" y2="170" stroke="rgba(6,182,212,0.95)"   stroke-width="1.6" opacity="0"/>
 
-              <!-- Distribution labels -->
-              <text x="121" y="72" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="600" fill="#06b6d4">Manifest</text>
-              <text x="232" y="84" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="600" fill="#fb923c">Conventional R&amp;D</text>
+              <!-- Column labels at bottom -->
+              <g class="arc-col-labels" font-family="Inter, sans-serif" font-size="13" fill="rgba(255,255,255,0.65)" text-anchor="middle">
+                <text class="col-label" x="80"  y="220">Hypothesis</text>
+                <text class="col-label" x="215" y="220">Experiment</text>
+                <text class="col-label" x="370" y="220">Outcomes</text>
+                <text class="col-label" x="520" y="220">Decision</text>
+              </g>
 
-              <!-- Shift arrow showing Manifest is LEFT of Conventional -->
-              <path d="M 220 50 Q 175 40 132 50" fill="none" stroke="#06b6d4" stroke-width="1.4" stroke-dasharray="3 3"/>
-              <path d="M 136 47 L 130 50 L 136 53 Z" fill="#06b6d4"/>
-              <text x="178" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.4" fill="#06b6d4" font-weight="600">LEFT-SHIFTED</text>
-
+              <!-- Histogram inset (S4 only). Mini decision-time distribution
+                   showing Manifest (cyan) peaks LEFT of Conventional R&D (warm).
+                   Tucked into the bottom-right; appears as the "outcome" of
+                   doing the dual-sim arc thousands of times across the
+                   portfolio. -->
+              <g class="hist-inset" opacity="0">
+                <!-- Axis baseline -->
+                <line x1="395" y1="210" x2="585" y2="210" stroke="rgba(148,163,184,0.6)" stroke-width="0.9"/>
+                <!-- Warm bars (Conventional R&D): right-peaked -->
+                <g fill="#fb923c" fill-opacity="0.65" stroke="#fb923c" stroke-width="0.4">
+                  <rect x="400" y="206" width="14" height="4"/>
+                  <rect x="418" y="200" width="14" height="10"/>
+                  <rect x="436" y="190" width="14" height="20"/>
+                  <rect x="454" y="178" width="14" height="32"/>
+                  <rect x="472" y="166" width="14" height="44"/>
+                  <rect x="490" y="160" width="14" height="50"/>
+                  <rect x="508" y="172" width="14" height="38"/>
+                  <rect x="526" y="190" width="14" height="20"/>
+                  <rect x="544" y="200" width="14" height="10"/>
+                </g>
+                <!-- Cyan bars (Manifest): left-peaked, overlapping -->
+                <g fill="#06b6d4" fill-opacity="0.80" stroke="#06b6d4" stroke-width="0.4">
+                  <rect x="400" y="194" width="14" height="16"/>
+                  <rect x="418" y="170" width="14" height="40"/>
+                  <rect x="436" y="156" width="14" height="54"/>
+                  <rect x="454" y="166" width="14" height="44"/>
+                  <rect x="472" y="184" width="14" height="26"/>
+                  <rect x="490" y="200" width="14" height="10"/>
+                  <rect x="508" y="206" width="14" height="4"/>
+                </g>
+                <!-- Distribution legends (top of inset). 'Decisions vs Time'
+                     is conveyed by the bar shape; explicit "time" label would
+                     conflict with the column labels at y=220. -->
+                <g font-family="IBM Plex Mono, monospace" font-size="8.5" letter-spacing="0.6">
+                  <circle cx="402" cy="148" r="3" fill="#06b6d4"/>
+                  <text x="408" y="151" fill="#06b6d4">Manifest</text>
+                  <circle cx="462" cy="148" r="3" fill="#fb923c"/>
+                  <text x="468" y="151" fill="#fb923c">Conventional</text>
+                </g>
+              </g>
             </svg>
           </div>
-          <p><strong style="color: #ffffff;">Bayesian Optimal Experimental Design.</strong> For each program: identify the open hypotheses blocking the path to TPP, enumerate the experiments that could resolve them, project each experiment&rsquo;s outcome distribution, and schedule the subset whose joint coverage maximizes <span style="color: var(--accent-hi); font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.02em;">E[&Delta;P(TPP)] / E[T]</span> &mdash; expected belief-shift per unit time, given what the twin says each experiment will actually take to run.</p>
+          <p>Decisions are <strong style="color: var(--accent-hi);">pre-loaded</strong> from the outcomes simulation. When the experiment realizes, the decision fires with <span style="font-family: var(--mono); color: var(--accent-hi);">&Delta;t = 0</span> &mdash; aggregated across the portfolio, decision-time shifts left.</p>
         </div>
 
       </div>
@@ -2358,15 +2466,18 @@
     const SVG_NS = 'http://www.w3.org/2000/svg';
 
     // ---- Timing (seconds) ----
-    const LOOP = 12.0;
+    // Each stage has a build phase (s → buildE) followed by a 1.0s hold
+    // (buildE → e). The hold gives the viewer time to read the state
+    // before the next stage's transitions start.
+    const LOOP = 16.5;
     const PH = {
-      S1:   { s: 0.0,  e: 1.8 },   // HYPOTHESIZE
-      S2:   { s: 1.8,  e: 3.5 },   // EXPERIMENT + OUTCOME ENUMERATION
-      S3:   { s: 3.5,  e: 7.0 },   // PROJECT (30-outcome sweep with speed ramp)
-      S4A:  { s: 7.0,  e: 8.5 },   // PAIRS + COMBINATIONS
-      S4B:  { s: 8.5,  e: 10.0 },  // TIME AXIS
-      S4C:  { s: 10.0, e: 11.5 },  // SELECTION
-      HOLD: { s: 11.5, e: 12.0 },  // HOLD
+      S1:   { s: 0.0,  buildE: 1.5,  e: 2.5  },   // HYPOTHESIZE
+      S2:   { s: 2.5,  buildE: 3.7,  e: 4.7  },   // EXPERIMENT + OUTCOME ENUMERATION
+      S3:   { s: 4.7,  buildE: 8.2,  e: 9.2  },   // PROJECT (30-outcome sweep, 3.5s)
+      S4A:  { s: 9.2,  buildE: 10.5, e: 11.5 },   // PAIRS + COMBINATIONS
+      S4B:  { s: 11.5, buildE: 12.7, e: 13.7 },   // TIME AXIS
+      S4C:  { s: 13.7, buildE: 15.0, e: 16.0 },   // SELECTION
+      HOLD: { s: 16.0, e: 16.5 },                 // FADE
     };
 
     // ---- Data: hypotheses, experiments, outcomes ----
@@ -2448,7 +2559,7 @@
     // "this is computational reasoning, not human-paced inspection."
     function buildSweepSchedule() {
       const N = OUTCOMES.length;
-      const total = PH.S3.e - PH.S3.s;
+      const total = PH.S3.buildE - PH.S3.s;
       const t0 = 0.40, tn = 0.04;
       const r = Math.pow(tn / t0, 1 / (N - 1));
       const durs = Array.from({length: N}, (_, i) => t0 * Math.pow(r, i));
@@ -2501,7 +2612,7 @@
       grp.hyps.appendChild(c); return c;
     });
     const elsHypLabel = HYPS.map(h => {
-      const t = mk('text', { class: 'hyp-label', 'data-h': h.id, x: 120, y: h.y - 10, opacity: 0 });
+      const t = mk('text', { class: 'hyp-label', 'data-h': h.id, x: 120, y: h.y - 13, opacity: 0 });
       t.textContent = h.label;
       grp.hypLabels.appendChild(t); return t;
     });
@@ -2694,9 +2805,9 @@
       // Caption
       if (captionEl.textContent !== CAPTIONS[stage]) captionEl.textContent = CAPTIONS[stage];
 
-      // ----- Hypothesis layer (always 1 during S2-S3, fades during S1 in and S4A out) -----
+      // ----- Hypothesis layer (build during S1; hold through S2-S3; fade during S4A) -----
       let hypO = 0;
-      if (t < PH.S1.e)               hypO = easeOut(t / PH.S1.e);
+      if (t < PH.S1.buildE)          hypO = easeOut(t / PH.S1.buildE);
       else if (t < PH.S4A.s)         hypO = 1;
       else if (t < PH.S4A.s + 0.4)   hypO = 1 - easeOut((t - PH.S4A.s) / 0.4);
       else                           hypO = 0;
@@ -2711,30 +2822,34 @@
       else                           progO = 0;
       programNode.setAttribute('opacity', progO);
 
-      // ----- Hyp→TPP dotted (S1 only; fades out at S2 start) -----
+      // ----- Hyp→TPP dotted (build during S1; hold during S1 hold; fade at S2 start) -----
       let hypTppO = 0;
-      if (t < PH.S1.e)                hypTppO = easeOut(t / PH.S1.e);
+      if (t < PH.S1.buildE)           hypTppO = easeOut(t / PH.S1.buildE);
+      else if (t < PH.S2.s)           hypTppO = 1;
       else if (t < PH.S2.s + 0.5)     hypTppO = 1 - easeOut((t - PH.S2.s) / 0.5);
       elsHypTpp.forEach(el => el.setAttribute('opacity', hypTppO * 0.6));
 
-      // ----- TPP node (matches the dotted lines: visible S1, fades at S2 start) -----
+      // ----- TPP node (matches the dotted lines) -----
       let tppO = 0;
-      if (t < PH.S1.e)                tppO = easeOut(t / PH.S1.e);
+      if (t < PH.S1.buildE)           tppO = easeOut(t / PH.S1.buildE);
+      else if (t < PH.S2.s)           tppO = 1;
       else if (t < PH.S2.s + 0.5)     tppO = 1 - easeOut((t - PH.S2.s) / 0.5);
       tppNode.setAttribute('opacity', tppO);
 
       // ----- Tree layer (experiments + outcomes) per stage -----
-      // S2: ramp in. S3: full. S4A start: snap-fade out over 0.4s so the
-      // pair rows can appear cleanly with no overlap.
+      // S2 build: experiments fade in first, then outcomes. S2/S3 hold: full.
+      // S4A start: snap-fade out over 0.4s so the pair rows can appear cleanly.
       let expO = 0, outO = 0;
-      if (t < PH.S2.s)                  { expO = 0; outO = 0; }
-      else if (t < PH.S2.s + 0.8)       { expO = easeOut((t - PH.S2.s) / 0.8); outO = 0; }
-      else if (t < PH.S2.e)             { expO = 1; outO = easeOut((t - PH.S2.s - 0.8) / (PH.S2.e - PH.S2.s - 0.8)); }
-      else if (t < PH.S4A.s)            { expO = 1; outO = 1; }
-      else if (t < PH.S4A.s + 0.4)      { const p = 1 - easeOut((t - PH.S4A.s) / 0.4); expO = p; outO = p; }
-      else                              { expO = 0; outO = 0; }
+      const S2_BUILD = PH.S2.buildE - PH.S2.s;       // 1.2s
+      const S2_EXP_DUR = S2_BUILD * 0.55;             // ~0.66s for exps
+      if (t < PH.S2.s)                                { expO = 0; outO = 0; }
+      else if (t < PH.S2.s + S2_EXP_DUR)              { expO = easeOut((t - PH.S2.s) / S2_EXP_DUR); outO = 0; }
+      else if (t < PH.S2.buildE)                      { expO = 1; outO = easeOut((t - PH.S2.s - S2_EXP_DUR) / (S2_BUILD - S2_EXP_DUR)); }
+      else if (t < PH.S4A.s)                          { expO = 1; outO = 1; }
+      else if (t < PH.S4A.s + 0.4)                    { const p = 1 - easeOut((t - PH.S4A.s) / 0.4); expO = p; outO = p; }
+      else                                            { expO = 0; outO = 0; }
 
-      if (stage === 'S3') {
+      if (stage === 'S3' && t < PH.S3.buildE) {
         // Sweep mode — applySweepHighlight handles per-element state
         const s3T = t - PH.S3.s;
         let activeIdx = -1;
@@ -2753,8 +2868,9 @@
 
       // ----- Stage-4 pair rows ----- (start fading in AFTER tree finishes fading out)
       let pairO = 0;
+      const PAIR_FADE_IN_END = PH.S4A.buildE;  // pairs fully visible at S4A buildE
       if (t < PH.S4A.s + 0.45)        pairO = 0;
-      else if (t < PH.S4A.e)          pairO = easeOut((t - PH.S4A.s - 0.45) / (PH.S4A.e - PH.S4A.s - 0.45));
+      else if (t < PAIR_FADE_IN_END)  pairO = easeOut((t - PH.S4A.s - 0.45) / (PAIR_FADE_IN_END - PH.S4A.s - 0.45));
       else if (t < PH.HOLD.e)         pairO = 1;
 
       OUTCOMES.forEach((o, i) => {
@@ -2771,9 +2887,10 @@
         const listXOut = PAIR_LIST_X_OUT;
         const timeXExp = TIME_AXIS_X_MIN;
         const timeXOut = durationToX(exp.duration);
-        // S4A: list layout. S4B: tween toward time-axis layout. S4C/HOLD: full time-axis layout.
+        // S4A: list layout. S4B: tween toward time-axis layout over its build,
+        // then hold. S4C/HOLD: full time-axis layout.
         let s4bP = 0;
-        if (stage === 'S4B')              s4bP = easeInOut((t - PH.S4B.s) / (PH.S4B.e - PH.S4B.s));
+        if (stage === 'S4B')              s4bP = easeInOut(clamp01((t - PH.S4B.s) / (PH.S4B.buildE - PH.S4B.s)));
         else if (stage === 'S4C' || stage === 'HOLD') s4bP = 1;
         const xExp = lerp(listXExp, timeXExp, s4bP);
         const xOut = lerp(listXOut, timeXOut, s4bP);
@@ -2801,7 +2918,7 @@
       // ----- Combinations: visible mostly in S4A; thin in S4B; fade in S4C -----
       let comboO = 0;
       if (stage === 'S4A') {
-        const p = clamp01((t - PH.S4A.s - 0.8) / (PH.S4A.e - PH.S4A.s - 0.8));
+        const p = clamp01((t - PH.S4A.s - 0.8) / (PH.S4A.buildE - PH.S4A.s - 0.8));
         comboO = easeOut(p) * 0.70;
       } else if (stage === 'S4B') {
         comboO = 0.45;
@@ -2813,7 +2930,7 @@
       }
       elsCombo.forEach(el => el.setAttribute('opacity', comboO));
 
-      // ----- Time axis (S4B, S4C, HOLD) -----
+      // ----- Time axis (S4B build/hold, S4C, HOLD) -----
       let axisO = 0;
       if (stage === 'S4B')                          axisO = easeOut(clamp01((t - PH.S4B.s) / 0.5));
       else if (stage === 'S4C' || stage === 'HOLD') axisO = 1;
@@ -2831,7 +2948,7 @@
           el.setAttribute('cx', midX);
           el.setAttribute('cy', rowY);
           const haloP = stage === 'S4C'
-            ? easeOut(clamp01((t - PH.S4C.s - 0.3) / 0.7))
+            ? easeOut(clamp01((t - PH.S4C.s - 0.3) / (PH.S4C.buildE - PH.S4C.s - 0.3)))
             : 1;
           el.setAttribute('opacity', haloP * 0.75);
         } else {
@@ -2863,6 +2980,184 @@
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       obs.disconnect();
       tick(11.0);
+    }
+  })();
+
+  // ============================================================
+  // 4. Fusion card — Simulate / Execute / Realize / Decide arc.
+  //    11.5s loop, 4 stages with 1s holds.
+  //    See the SVG markup for stage-by-stage description. JS controls
+  //    each line's dotted/solid opacity crossfade and the histogram
+  //    inset fade-in.
+  // ============================================================
+  (function setupArcAnimation() {
+    const svg = document.querySelector('#frame-5 .dual-sim-arc');
+    if (!svg) return;
+
+    const LOOP = 11.5;
+    const PH = {
+      S1:   { s: 0.0,  buildE: 2.0,  e: 3.0  },   // Simulate: build 2s, hold 1s
+      S2:   { s: 3.0,  buildE: 4.0,  e: 5.0  },   // Execute:  build 1s, hold 1s
+      S3:   { s: 5.0,  buildE: 6.5,  e: 7.5  },   // Realize:  build 1.5s, hold 1s
+      S4:   { s: 7.5,  buildE: 9.0,  e: 10.5 },   // Decide:   build 1.5s, hold 1.5s
+      FADE: { s: 10.5, e: 11.5 },
+    };
+    const LABEL = {
+      S1:   { n: 'Simulate', d: '(Δt = minutes)'            },
+      S2:   { n: 'Execute',  d: '(Δt = experiment latency)' },
+      S3:   { n: 'Realize',  d: '(Δt = experiment time)'    },
+      S4:   { n: 'Decide',   d: '(Δt = 0)'                  },
+      FADE: { n: 'Decide',   d: '(Δt = 0)'                  },
+    };
+
+    // Element refs
+    const stageName = svg.querySelector('.stage-name');
+    const stageDt   = svg.querySelector('.stage-dt');
+    const hypNode = svg.querySelector('.arc-hyp');
+    const expNode = svg.querySelector('.arc-exp');
+    const outDots = [svg.querySelector('.out-0'), svg.querySelector('.out-1'), svg.querySelector('.out-2')];
+    const decGroups = [svg.querySelector('.dec-0'), svg.querySelector('.dec-1'), svg.querySelector('.dec-2')];
+    const heDotted = svg.querySelector('.line-dotted.line-he');
+    const heSolid  = svg.querySelector('.line-solid.line-he');
+    const eoDot = [0,1,2].map(i => svg.querySelector(`.line-dotted.line-eo-${i}`));
+    const eoSol = [0,1,2].map(i => svg.querySelector(`.line-solid.line-eo-${i}`));
+    const odDot = [0,1,2].map(i => svg.querySelector(`.line-dotted.line-od-${i}`));
+    const odSol = [0,1,2].map(i => svg.querySelector(`.line-solid.line-od-${i}`));
+    const hist = svg.querySelector('.hist-inset');
+    const colLabels = Array.from(svg.querySelectorAll('.col-label'));
+
+    const easeOut = t => 1 - Math.pow(1 - t, 2);
+    const clamp01 = x => Math.max(0, Math.min(1, x));
+
+    function tick(t) {
+      // Stage detection
+      let stage;
+      if      (t < PH.S1.e)   stage = 'S1';
+      else if (t < PH.S2.e)   stage = 'S2';
+      else if (t < PH.S3.e)   stage = 'S3';
+      else if (t < PH.S4.e)   stage = 'S4';
+      else                    stage = 'FADE';
+      const lbl = LABEL[stage];
+      if (stageName.textContent !== lbl.n) stageName.textContent = lbl.n;
+      if (stageDt.textContent !== lbl.d) stageDt.textContent = lbl.d;
+
+      // Base opacity (S1 fade-in, then full through S4, then FADE)
+      let baseO = 0;
+      if (t < PH.S1.buildE)        baseO = easeOut(t / PH.S1.buildE);
+      else if (t < PH.FADE.s)      baseO = 1;
+      else                         baseO = 1 - easeOut((t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
+
+      // Persistent nodes: hypothesis, experiment, mid outcome, mid decision
+      hypNode.setAttribute('opacity', baseO);
+      expNode.setAttribute('opacity', baseO);
+      outDots[1].setAttribute('opacity', baseO);
+      decGroups[1].setAttribute('opacity', baseO);
+      colLabels.forEach(el => el.setAttribute('opacity', baseO));
+
+      // Alt outcomes/decisions (top + bot): visible until S3 build, then fade.
+      let altO = 0;
+      if (t < PH.S1.buildE)        altO = easeOut(t / PH.S1.buildE);
+      else if (t < PH.S3.s)        altO = 1;
+      else if (t < PH.S3.buildE)   altO = 1 - easeOut((t - PH.S3.s) / (PH.S3.buildE - PH.S3.s));
+      outDots[0].setAttribute('opacity', altO);
+      outDots[2].setAttribute('opacity', altO);
+      decGroups[0].setAttribute('opacity', altO);
+      decGroups[2].setAttribute('opacity', altO);
+
+      // Hyp ↔ Exp line: dotted in S1, crossfades to solid in S2 build
+      let heD = 0, heS = 0;
+      if (t < PH.S1.buildE) {
+        heD = easeOut(t / PH.S1.buildE);
+      } else if (t < PH.S2.s) {
+        heD = 1;
+      } else if (t < PH.S2.buildE) {
+        const p = easeOut((t - PH.S2.s) / (PH.S2.buildE - PH.S2.s));
+        heD = 1 - p; heS = p;
+      } else if (t < PH.FADE.s) {
+        heS = 1;
+      } else {
+        heS = 1 - easeOut((t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
+      }
+      heDotted.setAttribute('opacity', heD);
+      heSolid.setAttribute('opacity', heS);
+
+      // Exp ↔ Outcome (mid): dotted through S1+S2, crossfades to solid in S3 build
+      let eoMidD = 0, eoMidS = 0;
+      if (t < PH.S1.buildE) {
+        eoMidD = easeOut(t / PH.S1.buildE);
+      } else if (t < PH.S3.s) {
+        eoMidD = 1;
+      } else if (t < PH.S3.buildE) {
+        const p = easeOut((t - PH.S3.s) / (PH.S3.buildE - PH.S3.s));
+        eoMidD = 1 - p; eoMidS = p;
+      } else if (t < PH.FADE.s) {
+        eoMidS = 1;
+      } else {
+        eoMidS = 1 - easeOut((t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
+      }
+      eoDot[1].setAttribute('opacity', eoMidD);
+      eoSol[1].setAttribute('opacity', eoMidS);
+
+      // Exp ↔ Outcome (alt 0, 2): dotted, fade out in S3 (same curve as altO)
+      [0, 2].forEach(i => {
+        eoDot[i].setAttribute('opacity', altO);
+        eoSol[i].setAttribute('opacity', 0);
+      });
+
+      // Outcome ↔ Decision (mid): dotted through S1+S2+S3, solid in S4 build
+      let odMidD = 0, odMidS = 0;
+      if (t < PH.S1.buildE) {
+        odMidD = easeOut(t / PH.S1.buildE);
+      } else if (t < PH.S4.s) {
+        odMidD = 1;
+      } else if (t < PH.S4.buildE) {
+        const p = easeOut((t - PH.S4.s) / (PH.S4.buildE - PH.S4.s));
+        odMidD = 1 - p; odMidS = p;
+      } else if (t < PH.FADE.s) {
+        odMidS = 1;
+      } else {
+        odMidS = 1 - easeOut((t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
+      }
+      odDot[1].setAttribute('opacity', odMidD);
+      odSol[1].setAttribute('opacity', odMidS);
+
+      // Outcome ↔ Decision (alt 0, 2): mirror altO
+      [0, 2].forEach(i => {
+        odDot[i].setAttribute('opacity', altO);
+        odSol[i].setAttribute('opacity', 0);
+      });
+
+      // Histogram inset: fade in during S4 build, hold, fade in FADE
+      let histO = 0;
+      if (t < PH.S4.s)             histO = 0;
+      else if (t < PH.S4.buildE)   histO = easeOut((t - PH.S4.s) / (PH.S4.buildE - PH.S4.s));
+      else if (t < PH.FADE.s)      histO = 1;
+      else                         histO = 1 - easeOut((t - PH.FADE.s) / (PH.FADE.e - PH.FADE.s));
+      hist.setAttribute('opacity', histO);
+    }
+
+    // rAF loop, gated on frame-5 visibility
+    let raf = null, startMs = null;
+    function loop(ms) {
+      if (startMs == null) startMs = ms;
+      tick(((ms - startMs) / 1000) % LOOP);
+      raf = requestAnimationFrame(loop);
+    }
+    const frame5 = document.getElementById('frame-5');
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && entry.intersectionRatio > 0.25) {
+          if (raf == null) { startMs = null; raf = requestAnimationFrame(loop); }
+        } else {
+          if (raf != null) { cancelAnimationFrame(raf); raf = null; }
+        }
+      });
+    }, { threshold: [0.25] });
+    obs.observe(frame5);
+
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      obs.disconnect();
+      tick(9.5);  // mid-S4 hold
     }
   })();
 </script>
