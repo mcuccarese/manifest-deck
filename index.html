@@ -689,13 +689,27 @@
   /* ============================================================
      FRAME 05 — DUAL SIM (DARK) — twin hero + chart + tree
      ============================================================ */
+  /* 2-column grid: simulations (Twin + Outcomes) stack on the left,
+     Fusion (decision-time histogram) spans both rows on the right.
+     Left column gets a bit more horizontal width so the twin video and
+     belief-network read clearly; right column is portrait-ish so the
+     histogram has the vertical span its left-shift story needs. */
   .dual-grid {
     display: grid;
-    grid-template-columns: 1.05fr 0.75fr 1.05fr;
-    gap: 28px;
+    grid-template-columns: 1.3fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 24px;
     align-items: stretch;
-    margin-top: 30px;
+    margin-top: 24px;
+    /* Explicit height so 1fr rows divide a known parent. Sized to leave
+       room for the eyebrow + headline + lede + frame padding above and
+       still fit a 900px viewport. Cards have overflow:hidden so the
+       inner SVG / video scales without forcing the row taller. */
+    height: min(580px, calc(100vh - 300px));
   }
+  .dual-grid > .dual-card.twin     { grid-column: 1; grid-row: 1; }
+  .dual-grid > .dual-card.outcomes { grid-column: 1; grid-row: 2; }
+  .dual-grid > .dual-card.fusion   { grid-column: 2; grid-row: 1 / span 2; }
   .dual-card {
     background: rgba(255,255,255,0.02);
     border: 1px solid rgba(8, 165, 215, 0.18);
@@ -733,7 +747,11 @@
      Swap any <img> for <video> later for a real recording. */
   .twin-media {
     position: relative;
-    aspect-ratio: 16/11;
+    /* aspect-ratio removed: flex:1 + min-height:0 lets the media fill
+       whatever vertical space the card has after header/description.
+       The inner <video>/<img> uses object-fit: cover. */
+    flex: 1 1 auto;
+    min-height: 0;
     border-radius: 10px;
     overflow: hidden;
     background: #02050a;
@@ -750,14 +768,16 @@
     transition: opacity 1.6s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .twin-media img.active { opacity: 1; }
-  /* When a real screen recording is available, drop a <video> into
-     .twin-media in place of the <img> set and it will fill the frame. */
+  /* Twin recording — ultrawide aspect (~3.24:1) showing the continuous
+     zoom across scales. object-fit: contain keeps the whole recording
+     visible; the dark card background fills any letterbox. */
   .twin-media video {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    background: #02050a;
   }
   .twin-media .scale-readout {
     position: absolute;
@@ -792,68 +812,26 @@
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.35; transform: scale(0.85); }
   }
-  /* Chart inside the middle dual card */
+  /* Chart inside the Fusion (right, full-height) card. Fills the card
+     vertically; the inner SVG uses preserveAspectRatio="xMidYMid meet". */
   .twin-chart {
     background: rgba(0,0,0,0.30);
     border-radius: 10px;
-    aspect-ratio: 16/11;
+    flex: 1 1 auto;
+    min-height: 0;
     padding: 14px;
     position: relative;
   }
-  /* Decision tree visual inside the right card */
+  /* Decision tree visual inside the Outcomes (left-bottom) card. */
   .twin-tree {
     background: rgba(0,0,0,0.30);
     border-radius: 10px;
-    aspect-ratio: 16/11;
+    flex: 1 1 auto;
+    min-height: 0;
     padding: 14px;
     position: relative;
   }
-  /* Zoom scale dots — sit BELOW the twin media to show 5 scales w/ active */
-  .twin-scale-dots {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 4px 2px 0;
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.4);
-  }
-  .twin-scale-dots .sd-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: rgba(8, 165, 215, 0.25);
-    transition: background 0.4s ease, transform 0.4s ease;
-  }
-  .twin-scale-dots .sd-dot.active {
-    background: var(--accent-hi);
-    transform: scale(1.35);
-    box-shadow: 0 0 8px var(--accent-hi);
-  }
-  .twin-scale-dots .sd-track {
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(8, 165, 215, 0.05), rgba(8, 165, 215, 0.4), rgba(8, 165, 215, 0.05));
-  }
   .twin-tree svg, .twin-chart svg { width: 100%; height: 100%; display: block; overflow: visible; }
-
-  /* Tree visual is static for now; animation deferred. */
-  .dual-fuse-bar {
-    margin-top: 28px;
-    padding: 14px 22px;
-    background: linear-gradient(90deg, rgba(8,145,178,0.10), rgba(217,119,6,0.10));
-    border: 1px solid rgba(255,255,255,0.10);
-    border-radius: 10px;
-    font-family: var(--display);
-    font-size: 14px;
-    font-weight: 500;
-    color: #ffffff;
-    letter-spacing: -0.005em;
-    text-align: center;
-  }
-  .dual-fuse-bar strong { color: var(--accent-hi); font-weight: 600; }
-  .dual-fuse-bar em { color: var(--warm); font-style: normal; font-weight: 600; }
 
   /* ============================================================
      FRAME 03 — MOAT + MODEL — text two-column
@@ -1746,80 +1724,20 @@
 
       <div class="dual-grid">
 
-        <!-- LEFT: the live twin (single static screenshot of the floor-plan view). -->
-        <div class="dual-card reveal-fade">
+        <!-- LEFT-TOP: Digital twin — live screen-capture loop of the
+             twin's continuous-zoom view (globe → HQ → instrument → plate). -->
+        <div class="dual-card sim twin reveal-fade">
           <div class="tag">Next-generation digital twin</div>
-          <div class="twin-media" id="twin-media" aria-label="Digital twin floor-plan view with program sidebar and equipment detail panel.">
-            <img class="active" src="assets/twin/floor-plan.png" alt="Manifest Discovery digital twin: 7 programs in flight, floor plan with equipment, mass spec triple quad detail">
+          <div class="twin-media" id="twin-media" aria-label="Digital twin continuous-zoom recording: globe to HQ to instrument to plate.">
+            <video src="assets/twin/twin-recording.mp4" autoplay muted loop playsinline preload="auto"></video>
             <span class="live-pulse">live</span>
           </div>
           <p>Accurate reflection of real-world resource use, and an instant simulator of prospective use or change. Every CRO, instrument, room, and person is a node.</p>
         </div>
 
-        <!-- MIDDLE: Decision-time distribution as overlapping histograms.
-             Manifest (cyan) peaks LEFT (faster). Conventional R&D (orange)
-             peaks RIGHT (slower). -->
-        <div class="dual-card reveal-fade" style="transition-delay: 0.15s;">
-          <div class="tag">Hybridization</div>
-          <div class="twin-chart">
-            <svg viewBox="0 0 360 220" preserveAspectRatio="xMidYMid meet" aria-label="Histogram: Manifest's decision-time bars peak earlier (left); Conventional R&D's bars peak later (right).">
-
-              <!-- Plot area: x in [40, 340], y in [25, 180]. Baseline y=180. -->
-
-              <!-- Conventional R&D bars (warm, drawn FIRST so cyan can overlap) -->
-              <!-- Heights: [5, 12, 28, 50, 72, 88, 70, 42, 18] -->
-              <g fill="#fb923c" fill-opacity="0.62" stroke="#fb923c" stroke-width="0.5">
-                <rect x="50"  y="175" width="22" height="5"/>
-                <rect x="80"  y="168" width="22" height="12"/>
-                <rect x="110" y="152" width="22" height="28"/>
-                <rect x="140" y="130" width="22" height="50"/>
-                <rect x="170" y="108" width="22" height="72"/>
-                <rect x="200" y="92"  width="22" height="88"/>
-                <rect x="230" y="110" width="22" height="70"/>
-                <rect x="260" y="138" width="22" height="42"/>
-                <rect x="290" y="162" width="22" height="18"/>
-              </g>
-
-              <!-- Manifest bars (cyan, overlaid with transparency so both stay visible) -->
-              <!-- Heights: [30, 70, 95, 80, 50, 22, 8, 2, 0] -->
-              <g fill="#06b6d4" fill-opacity="0.78" stroke="#06b6d4" stroke-width="0.5">
-                <rect x="50"  y="150" width="22" height="30"/>
-                <rect x="80"  y="110" width="22" height="70"/>
-                <rect x="110" y="85"  width="22" height="95"/>
-                <rect x="140" y="100" width="22" height="80"/>
-                <rect x="170" y="130" width="22" height="50"/>
-                <rect x="200" y="158" width="22" height="22"/>
-                <rect x="230" y="172" width="22" height="8"/>
-                <rect x="260" y="178" width="22" height="2"/>
-                <!-- bin 9 zero height: omit -->
-              </g>
-
-              <!-- Axes -->
-              <line x1="38" y1="180" x2="346" y2="180" stroke="#94a3b8" stroke-width="1.4"/>
-              <line x1="38" y1="20"  x2="38"  y2="180" stroke="#94a3b8" stroke-width="1.4"/>
-              <path d="M 342 177 L 348 180 L 342 183 Z" fill="#94a3b8"/>
-              <path d="M 35 24 L 38 18 L 41 24 Z" fill="#94a3b8"/>
-
-              <!-- Axis labels -->
-              <text x="192" y="204" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#94a3b8">time to decision</text>
-              <text x="22" y="102" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#94a3b8" transform="rotate(-90 22 102)">decisions</text>
-
-              <!-- Distribution labels -->
-              <text x="121" y="72" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="600" fill="#06b6d4">Manifest</text>
-              <text x="232" y="84" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="600" fill="#fb923c">Conventional R&amp;D</text>
-
-              <!-- Shift arrow showing Manifest is LEFT of Conventional -->
-              <path d="M 220 50 Q 175 40 132 50" fill="none" stroke="#06b6d4" stroke-width="1.4" stroke-dasharray="3 3"/>
-              <path d="M 136 47 L 130 50 L 136 53 Z" fill="#06b6d4"/>
-              <text x="178" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.4" fill="#06b6d4" font-weight="600">LEFT-SHIFTED</text>
-
-            </svg>
-          </div>
-          <p>The digital twin evaluates latency and cost for each candidate. Outcomes ranks them. Same loop, decisions arrive sooner.</p>
-        </div>
-
-        <!-- RIGHT: Outcomes simulation - current → TPP decision tree (static). -->
-        <div class="dual-card reveal-fade" style="transition-delay: 0.30s;">
+        <!-- LEFT-BOTTOM: Outcomes simulation — current → TPP belief network
+             with candidate experiments scored by expected impact. -->
+        <div class="dual-card sim outcomes reveal-fade" style="transition-delay: 0.30s;">
           <div class="tag">Outcomes simulation</div>
           <div class="twin-tree">
             <svg viewBox="0 0 360 220" preserveAspectRatio="xMidYMid meet" aria-label="From current to TPP: enumerate candidate experiments and score by expected impact.">
@@ -1901,13 +1819,69 @@
           <p>Every candidate experiment is projected across the program&rsquo;s belief network and scored by expected impact on TPP.</p>
         </div>
 
-      </div>
+        <!-- RIGHT (full height): Fusion — the decision-time distribution.
+             Manifest (cyan) peaks LEFT (faster); Conventional R&D (orange)
+             peaks RIGHT (slower). This is what fusion buys you. -->
+        <div class="dual-card fusion reveal-fade" style="transition-delay: 0.15s;">
+          <div class="tag">Hybridization &mdash; one loop</div>
+          <div class="twin-chart">
+            <svg viewBox="0 0 360 220" preserveAspectRatio="xMidYMid meet" aria-label="Histogram: Manifest's decision-time bars peak earlier (left); Conventional R&D's bars peak later (right).">
 
-      <div class="dual-fuse-bar reveal-up">
-        <strong>Twin</strong> prices each candidate in current resource state &nbsp;·&nbsp; <em>Outcomes</em> ranks by expected impact &nbsp;·&nbsp; <strong style="color: var(--accent-hi);">one loop</strong>, every cycle, across the portfolio
-      </div>
+              <!-- Plot area: x in [40, 340], y in [25, 180]. Baseline y=180. -->
 
-      <p class="frame-meta reveal-up" style="text-align: center; margin-top: 22px;">Twin scales shown above &middot; globe &rarr; HQ &rarr; floor &rarr; instrument &rarr; plate &middot; <span style="color: var(--accent-hi); font-weight: 600;">continuous zoom &middot; live</span></p>
+              <!-- Conventional R&D bars (warm, drawn FIRST so cyan can overlap) -->
+              <!-- Heights: [5, 12, 28, 50, 72, 88, 70, 42, 18] -->
+              <g fill="#fb923c" fill-opacity="0.62" stroke="#fb923c" stroke-width="0.5">
+                <rect x="50"  y="175" width="22" height="5"/>
+                <rect x="80"  y="168" width="22" height="12"/>
+                <rect x="110" y="152" width="22" height="28"/>
+                <rect x="140" y="130" width="22" height="50"/>
+                <rect x="170" y="108" width="22" height="72"/>
+                <rect x="200" y="92"  width="22" height="88"/>
+                <rect x="230" y="110" width="22" height="70"/>
+                <rect x="260" y="138" width="22" height="42"/>
+                <rect x="290" y="162" width="22" height="18"/>
+              </g>
+
+              <!-- Manifest bars (cyan, overlaid with transparency so both stay visible) -->
+              <!-- Heights: [30, 70, 95, 80, 50, 22, 8, 2, 0] -->
+              <g fill="#06b6d4" fill-opacity="0.78" stroke="#06b6d4" stroke-width="0.5">
+                <rect x="50"  y="150" width="22" height="30"/>
+                <rect x="80"  y="110" width="22" height="70"/>
+                <rect x="110" y="85"  width="22" height="95"/>
+                <rect x="140" y="100" width="22" height="80"/>
+                <rect x="170" y="130" width="22" height="50"/>
+                <rect x="200" y="158" width="22" height="22"/>
+                <rect x="230" y="172" width="22" height="8"/>
+                <rect x="260" y="178" width="22" height="2"/>
+                <!-- bin 9 zero height: omit -->
+              </g>
+
+              <!-- Axes -->
+              <line x1="38" y1="180" x2="346" y2="180" stroke="#94a3b8" stroke-width="1.4"/>
+              <line x1="38" y1="20"  x2="38"  y2="180" stroke="#94a3b8" stroke-width="1.4"/>
+              <path d="M 342 177 L 348 180 L 342 183 Z" fill="#94a3b8"/>
+              <path d="M 35 24 L 38 18 L 41 24 Z" fill="#94a3b8"/>
+
+              <!-- Axis labels -->
+              <text x="192" y="204" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#94a3b8">time to decision</text>
+              <text x="22" y="102" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" fill="#94a3b8" transform="rotate(-90 22 102)">decisions</text>
+
+              <!-- Distribution labels -->
+              <text x="121" y="72" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="14" font-weight="600" fill="#06b6d4">Manifest</text>
+              <text x="232" y="84" text-anchor="middle" font-family="Space Grotesk, sans-serif" font-size="13" font-weight="600" fill="#fb923c">Conventional R&amp;D</text>
+
+              <!-- Shift arrow showing Manifest is LEFT of Conventional -->
+              <path d="M 220 50 Q 175 40 132 50" fill="none" stroke="#06b6d4" stroke-width="1.4" stroke-dasharray="3 3"/>
+              <path d="M 136 47 L 130 50 L 136 53 Z" fill="#06b6d4"/>
+              <text x="178" y="32" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" letter-spacing="1.4" fill="#06b6d4" font-weight="600">LEFT-SHIFTED</text>
+
+            </svg>
+          </div>
+          <p>The digital twin evaluates latency and cost for each candidate. Outcomes ranks them by expected impact. Same loop, decisions arrive sooner.</p>
+        </div>
+
+      </div>
     </div>
   </section>
 
