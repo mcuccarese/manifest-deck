@@ -238,6 +238,8 @@
   .is-visible .reveal-cascade > *:nth-child(6) { transition-delay: 0.60s; opacity: 1; transform: none; }
   .is-visible .reveal-cascade > *:nth-child(7) { transition-delay: 0.70s; opacity: 1; transform: none; }
   .is-visible .reveal-cascade > *:nth-child(8) { transition-delay: 0.80s; opacity: 1; transform: none; }
+  /* Children 9+ (e.g. Frame 1 tracks now exceed 8 dots): reveal with item 8. */
+  .is-visible .reveal-cascade > *:nth-child(n+9) { transition-delay: 0.85s; opacity: 1; transform: none; }
 
   /* SVG path drawing animation (Frame 2 loop, Frame 7 arcs) */
   .draw-path {
