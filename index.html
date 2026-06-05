@@ -3309,60 +3309,49 @@
 
     const allDots = [...row.querySelectorAll('.track-dot')];
 
-    const items = allDots.map(dot => {
-      const leftPct = parseFloat(dot.style.left);
-      const topPct = parseFloat(dot.style.top) || 50;
-      const dotX = (leftPct / 100) * laneW;
-      const dotY = (topPct / 100) * laneH;
-      const tag = dot.querySelector('.tag');
-      const sub = dot.querySelector('.sub');
-      const tagR = tag.getBoundingClientRect();
-      const subR = sub.getBoundingClientRect();
-      const labelW = Math.max(tagR.width, subR.width);
-      const labelH = subR.bottom - tagR.top;
-      const isCallout = /callout-/.test(dot.className);
-      return {
-        dot, dotX, dotY, labelW, labelH, isCallout,
-        // current rendered position (lane-relative) for tier obstacles
-        curX: Math.min(tagR.left, subR.left) - laneRect.left,
-        curY: tagR.top - laneRect.top,
-      };
-    });
+    // v9: process EVERY dot with a label. No more "tier obstacles" —
+    // the algorithm owns positioning for the whole timeline so all
+    // labels get the same left-aligned / leader-from-side style.
+    const items = allDots
+      .filter(d => d.querySelector('.tag'))
+      .map(dot => {
+        const leftPct = parseFloat(dot.style.left);
+        const topPct = parseFloat(dot.style.top) || 50;
+        const dotX = (leftPct / 100) * laneW;
+        const dotY = (topPct / 100) * laneH;
+        const tag = dot.querySelector('.tag');
+        const sub = dot.querySelector('.sub');
+        const tagR = tag.getBoundingClientRect();
+        const subR = sub.getBoundingClientRect();
+        const labelW = Math.max(tagR.width, subR.width);
+        const labelH = subR.bottom - tagR.top;
+        return { dot, dotX, dotY, labelW, labelH };
+      });
 
-    // Tier (non-callout) labels are fixed obstacles
-    const placed = items.filter(i => !i.isCallout).map(i => ({
-      x: i.curX, y: i.curY, w: i.labelW, h: i.labelH
-    }));
+    if (items.length === 0) return;
 
-    // Sort callouts by dotX so left-to-right callouts get first dibs
-    // on nearby slots (anti-crossing heuristic)
-    const callouts = items.filter(i => i.isCallout);
-    callouts.sort((a, b) => a.dotX - b.dotX);
+    items.sort((a, b) => a.dotX - b.dotX);
 
-    // Candidate slot Y rows (lane-relative) — keep close to dot row.
-    // Four rows: 2 above, 2 below. Tighter than before so labels live
-    // in horizontal bands and the algorithm has to scan sideways, not
-    // climb away from the dot.
-    const slotYs = [
-      laneH/2 - 44,   // upper-far
-      laneH/2 - 20,   // upper-near
-      laneH/2 + 18,   // lower-near
-      laneH/2 + 42,   // lower-far
-    ];
+    // Many slot Y rows extending well beyond the lane so labels can
+    // stack vertically into the inter-lane whitespace.
+    // 30px step ≈ label height (28px) + a hair of breathing room.
+    const slotYs = [];
+    for (let y = laneH/2 - 26; y >= -90; y -= 30) slotYs.push(y);
+    for (let y = laneH/2 + 22; y <= laneH + 90; y += 30) slotYs.push(y);
+
+    const placed = [];
 
     const pad = 6;
     const STEP = 6;
-    const MAX_X_RIGHT = RIGHT_BOUND;  // bounded by frame, not arbitrary
-    const MIN_X_LEFT  = -200;         // into left margin (last resort)
-    // Cost weights: horizontal travel is cheap (use whitespace!),
-    // vertical travel is expensive (stay near the dot row).
-    const HX_W = 0.4;
-    const VY_W = 2.5;
-    // Prefer right side strongly so labels follow dot order.
-    // Left is only chosen when no right slot exists at any row.
+    const MAX_X_RIGHT = RIGHT_BOUND;
+    const MIN_X_LEFT  = -200;
+    // v9: balanced costs encourage stacking (use vertical whitespace
+    // before fanning labels far horizontally from their dot).
+    const HX_W = 1.0;
+    const VY_W = 0.9;
     const LEFT_BIAS = 600;
 
-    callouts.forEach(item => {
+    items.forEach(item => {
       let best = null;
 
       for (const slotY of slotYs) {
@@ -3410,8 +3399,14 @@
       const dx = Math.max(0, Math.abs(best.x + (best.dir === 'r' ? 0 : item.labelW) - item.dotX) - 8);
       const dy = Math.abs(best.y - item.dotY);
 
-      item.dot.classList.remove('callout-tl','callout-tr','callout-bl','callout-br');
-      item.dot.classList.add(dirClass);
+      // Strip every legacy positioning class (tier, jog, old callout) so
+      // the callout CSS owns the layout. Keep color/style modifiers
+      // (method, warm, green, muted) and the base track-dot class.
+      const KEEP = new Set(['track-dot','method','warm','green','muted']);
+      const kept = [...item.dot.classList].filter(c => KEEP.has(c));
+      kept.push(dirClass);
+      item.dot.className = kept.join(' ');
+
       item.dot.style.setProperty('--lbl-dx', dx + 'px');
       item.dot.style.setProperty('--lbl-dy', dy + 'px');
 
