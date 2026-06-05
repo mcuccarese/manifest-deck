@@ -296,12 +296,14 @@
   #frame-2 .vs-col li { font-size: 12px; line-height: 1.35; }
   #frame-2 .vs-col .verdict { padding-top: 8px; margin-top: 10px; font-size: 11.5px; }
 
-  /* Frame 5 — minor compression (47px over): trim padding + headline.
-     The lede goes full-width so it wraps to 1-2 lines and gives the
-     three diagrams below more vertical room. */
-  #frame-5 .frame-inner { padding: 56px 56px 36px; }
-  #frame-5 .frame-headline { font-size: 38px; line-height: 1.1; margin: 0 0 10px; }
+  /* Frame 5 — minor compression. Lede grew by ~1 line on 2026-06-05 (new
+     'shave off the next stage gate' clause); padding + headline margin +
+     dual-grid margin-top trimmed to recover ~24px so the frame stays at
+     100vh and Frame 6 doesn't peek up at the bottom on scroll-snap. */
+  #frame-5 .frame-inner { padding: 48px 56px 28px; }
+  #frame-5 .frame-headline { font-size: 38px; line-height: 1.1; margin: 0 0 8px; }
   #frame-5 .frame-lede { font-size: 16px; line-height: 1.5; max-width: none; }
+  #frame-5 .dual-grid { margin-top: 18px; }
   .track-row {
     position: relative;
     display: grid;
