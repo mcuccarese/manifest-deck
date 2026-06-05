@@ -3294,18 +3294,24 @@
   function frame1Layout() {
     const frame = document.querySelector('#frame-1');
     if (!frame) return;
-    frame.querySelectorAll('.track-row').forEach(layoutTrack);
+    // v9.2: single-pass layout across ALL tracks with a shared obstacle
+    // list, in absolute browser coordinates. This kills inter-track
+    // label collisions (Track N's bottom-edge labels were touching
+    // Track N+1's top-edge labels).
+    const frameRect = frame.getBoundingClientRect();
+    const RIGHT_BOUND_ABS = frameRect.right - 16;
+    const LEFT_BOUND_ABS  = frameRect.left + 80;
+    const placed = [];
+    frame.querySelectorAll('.track-row').forEach(row =>
+      layoutTrack(row, placed, RIGHT_BOUND_ABS, LEFT_BOUND_ABS));
   }
 
-  function layoutTrack(row) {
+  function layoutTrack(row, placed, RIGHT_BOUND_ABS, LEFT_BOUND_ABS) {
     const lane = row.querySelector('.track-lane');
     if (!lane) return;
     const laneRect = lane.getBoundingClientRect();
     const laneW = laneRect.width;
     const laneH = laneRect.height;
-    const frameRect = document.querySelector('#frame-1').getBoundingClientRect();
-    // Rightmost label-x allowed (lane-relative) so labels stay inside frame.
-    const RIGHT_BOUND = (frameRect.right - laneRect.left) - 16;
 
     const allDots = [...row.querySelectorAll('.track-dot')];
 
@@ -3317,8 +3323,9 @@
       .map(dot => {
         const leftPct = parseFloat(dot.style.left);
         const topPct = parseFloat(dot.style.top) || 50;
-        const dotX = (leftPct / 100) * laneW;
-        const dotY = (topPct / 100) * laneH;
+        // Absolute browser coords so shared `placed` works across tracks.
+        const dotX = laneRect.left + (leftPct / 100) * laneW;
+        const dotY = laneRect.top  + (topPct  / 100) * laneH;
         const tag = dot.querySelector('.tag');
         const sub = dot.querySelector('.sub');
         const tagR = tag.getBoundingClientRect();
@@ -3332,21 +3339,18 @@
 
     items.sort((a, b) => a.dotX - b.dotX);
 
-    // Slot Y rows constrained to lane + half the inter-lane gap so
-    // labels never invade an adjacent track. Step 28px ≈ label height
-    // (gives 0px gap between stacked labels, leader pad provides
-    // the rest). Y_OUTSIDE = how far above/below lane edge to allow.
+    // Slot Y rows in ABSOLUTE coords, constrained to this track's lane
+    // + inter-lane gap (Y_OUTSIDE) on either side.
     const Y_OUTSIDE = 18;
     const slotYs = [];
-    for (let y = laneH/2 - 24; y >= -Y_OUTSIDE; y -= 28) slotYs.push(y);
-    for (let y = laneH/2 + 22; y <= laneH + Y_OUTSIDE; y += 28) slotYs.push(y);
-
-    const placed = [];
+    const laneCenterAbs = laneRect.top + laneH / 2;
+    for (let y = laneCenterAbs - 24; y >= laneRect.top - Y_OUTSIDE; y -= 28) slotYs.push(y);
+    for (let y = laneCenterAbs + 22; y <= laneRect.bottom + Y_OUTSIDE; y += 28) slotYs.push(y);
 
     const pad = 6;
     const STEP = 6;
-    const MAX_X_RIGHT = RIGHT_BOUND;
-    const MIN_X_LEFT  = -200;
+    const MAX_X_RIGHT = RIGHT_BOUND_ABS;
+    const MIN_X_LEFT  = LEFT_BOUND_ABS;
     // v9: balanced costs encourage stacking (use vertical whitespace
     // before fanning labels far horizontally from their dot).
     const HX_W = 1.0;
