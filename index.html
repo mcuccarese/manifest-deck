@@ -48,10 +48,11 @@
     -webkit-text-size-adjust: 100%;
     /* Snap the viewport to each frame's top edge so the user can land
        cleanly on a frame without the next one peeking in from below.
-       'proximity' is gentler than 'mandatory'  it only snaps when the
-       scroll lands near a boundary, so fine-grained scrolling inside a
-       frame still works. */
-    scroll-snap-type: y proximity;
+       'mandatory' is firmer than 'proximity'  every scroll gesture
+       commits to a snap point, which Chrome respects more reliably with
+       chunky mouse-wheel scrolling. Paired with scroll-snap-stop: always
+       on .frame so a single wheel-tick advances exactly one frame. */
+    scroll-snap-type: y mandatory;
   }
 
   body {
@@ -77,6 +78,7 @@
     font-family: var(--display);
     font-size: 14px; font-weight: 500;
     letter-spacing: -0.005em; color: var(--ink);
+    transition: color 0.3s ease;
   }
   .masthead-text-sub {
     font-family: var(--mono);
@@ -85,7 +87,14 @@
     margin-left: 8px;
     border-left: 1px solid var(--rule-strong);
     padding-left: 8px;
+    transition: border-color 0.3s ease;
   }
+  /* Dark-frame override (toggled by JS on body.on-dark when an
+     atmos-dark frame is active). The masthead is position: fixed and
+     lives outside any frame, so it can't be reached by .frame.atmos-dark
+     descendant selectors  hence the body-class hook. */
+  body.on-dark .masthead-text { color: rgba(255,255,255,0.92); }
+  body.on-dark .masthead-text-sub { border-left-color: rgba(255,255,255,0.20); }
   .dots {
     position: fixed; right: 28px; top: 50%;
     transform: translateY(-50%);
@@ -133,9 +142,10 @@
     color: var(--rule-strong);
     margin: 0 6px;
   }
-  /* On dark frames (Frame 5 dual-sim), invert for contrast */
-  .frame.atmos-dark ~ * .confidential-mark,
-  .frame.atmos-dark .confidential-mark { color: rgba(255,255,255,0.45); }
+  /* On dark frames (Frame 5 dual-sim), invert for contrast.
+     Toggled by JS via body.on-dark for fixed-position elements. */
+  body.on-dark .confidential-mark { color: rgba(255,255,255,0.45); }
+  body.on-dark .confidential-mark .conf-sep { color: rgba(255,255,255,0.20); }
 
   /* ============================================================
      FRAME SYSTEM — sticky cover-scroll (unchanged)
@@ -147,8 +157,11 @@
     background: var(--bg);
     overflow: hidden;
     display: flex; align-items: center; justify-content: center;
-    /* Paired with html { scroll-snap-type: y proximity } above. */
+    /* Paired with html { scroll-snap-type: y mandatory } above.
+       scroll-snap-stop: always prevents a single big scroll gesture from
+       skipping past a frame  one wheel-click = one frame transition. */
     scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
   .frame-inner {
     max-width: 1240px; width: 100%;
@@ -2450,15 +2463,20 @@
   function updateActiveDot() {
     const centerY = window.innerHeight / 2;
     let active = 1;
+    let activeFrame = null;
     frames.forEach((f) => {
       const r = f.getBoundingClientRect();
       if (r.top <= centerY && r.bottom > centerY) {
         active = parseInt(f.id.split('-')[1], 10);
+        activeFrame = f;
       }
     });
     dots.forEach(d => d.classList.remove('active'));
     const matching = document.querySelector(`.dot[data-frame="${active}"]`);
     if (matching) matching.classList.add('active');
+    // Toggle body.on-dark so fixed-position UI (masthead, confidential
+    // mark) can flip to a light-on-dark palette over atmos-dark frames.
+    document.body.classList.toggle('on-dark', !!(activeFrame && activeFrame.classList.contains('atmos-dark')));
   }
   let ticking = false;
   window.addEventListener('scroll', () => {
