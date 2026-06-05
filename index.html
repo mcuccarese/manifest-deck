@@ -3336,20 +3336,27 @@
     const callouts = items.filter(i => i.isCallout);
     callouts.sort((a, b) => a.dotX - b.dotX);
 
-    // Candidate slot Y rows (lane-relative)
+    // Candidate slot Y rows (lane-relative) — keep close to dot row.
+    // Four rows: 2 above, 2 below. Tighter than before so labels live
+    // in horizontal bands and the algorithm has to scan sideways, not
+    // climb away from the dot.
     const slotYs = [
-      -34,            // above the lane (in inter-lane gap)
-      -6,             // just inside lane top
-      laneH/2 - 36,   // upper-mid
-      laneH/2 + 8,    // lower-mid (just below dot row)
-      laneH - 16,     // bottom of lane
-      laneH + 14,     // just below lane
+      laneH/2 - 44,   // upper-far
+      laneH/2 - 20,   // upper-near
+      laneH/2 + 18,   // lower-near
+      laneH/2 + 42,   // lower-far
     ];
 
     const pad = 6;
     const STEP = 6;
     const MAX_X_RIGHT = laneW + 400;  // far into right margin
     const MIN_X_LEFT  = -240;         // into left margin
+    // Cost weights: horizontal travel is cheap (use whitespace!),
+    // vertical travel is expensive (stay near the dot row).
+    const HX_W = 0.4;
+    const VY_W = 2.5;
+    // Prefer right side by penalizing left slightly.
+    const LEFT_BIAS = 30;
 
     callouts.forEach(item => {
       let best = null;
@@ -3365,7 +3372,7 @@
         let n = 0;
         while (x + item.labelW < MAX_X_RIGHT && n < 220) {
           if (!collides({x, y: slotY, w: item.labelW, h: item.labelH}, placed, pad)) {
-            const cost = (x - item.dotX) + Math.abs(slotY - item.dotY) * 0.75;
+            const cost = (x - item.dotX) * HX_W + Math.abs(slotY - item.dotY) * VY_W;
             if (!best || cost < best.cost) {
               best = { x, y: slotY, dir: 'r', aboveDot, cost };
             }
@@ -3379,7 +3386,9 @@
         n = 0;
         while (x > MIN_X_LEFT && n < 220) {
           if (!collides({x, y: slotY, w: item.labelW, h: item.labelH}, placed, pad)) {
-            const cost = (item.dotX - x - item.labelW) + Math.abs(slotY - item.dotY) * 0.75;
+            const cost = (item.dotX - x - item.labelW) * HX_W
+                       + Math.abs(slotY - item.dotY) * VY_W
+                       + LEFT_BIAS;
             if (!best || cost < best.cost) {
               best = { x, y: slotY, dir: 'l', aboveDot, cost };
             }
