@@ -305,14 +305,20 @@
   #frame-2 .vs-col li { font-size: 12px; line-height: 1.35; }
   #frame-2 .vs-col .verdict { padding-top: 8px; margin-top: 10px; font-size: 11.5px; }
 
-  /* Frame 5 — minor compression. Lede grew by ~1 line on 2026-06-05 (new
-     'shave off the next stage gate' clause); padding + headline margin +
-     dual-grid margin-top trimmed to recover ~24px so the frame stays at
-     100vh and Frame 6 doesn't peek up at the bottom on scroll-snap. */
-  #frame-5 .frame-inner { padding: 48px 56px 28px; }
-  #frame-5 .frame-headline { font-size: 38px; line-height: 1.1; margin: 0 0 8px; }
+  /* Frame 5 — minor compression (47px over): trim padding + headline.
+     The lede goes full-width so it wraps to 1-2 lines and gives the
+     three diagrams below more vertical room. */
+  #frame-5 .frame-inner { padding: 56px 56px 36px; }
+  #frame-5 .frame-headline { font-size: 38px; line-height: 1.1; margin: 0 0 10px; }
   #frame-5 .frame-lede { font-size: 16px; line-height: 1.5; max-width: none; }
-  #frame-5 .dual-grid { margin-top: 18px; }
+  /* Frame 5 sits 80px taller than the viewport so small scroll overshoots
+     (chunky mouse-wheel, trackpad inertia) don't expose the next frame at
+     the bottom. align-items: flex-start keeps content anchored at the top
+     of the frame; the extra 80px lives entirely below content as dark
+     buffer that Frame 6 covers first before reaching anything visible.
+     (Center alignment would clip the dual-grid bottom against the viewport
+     because frame_inner is nearly as tall as the viewport.) */
+  #frame-5 { min-height: calc(100vh + 80px); align-items: flex-start; }
   .track-row {
     position: relative;
     display: grid;
@@ -772,10 +778,8 @@
     /* Explicit height so 1fr rows divide a known parent. Sized to leave
        room for the eyebrow + headline + lede + frame padding above and
        still fit a 900px viewport. Cards have overflow:hidden so the
-       inner SVG / video scales without forcing the row taller. Cap
-       lowered from 580 to 540 on 2026-06-05 to absorb the lede growth
-       and keep Frame 5 within 100vh without scroll-snap. */
-    height: min(540px, calc(100vh - 340px));
+       inner SVG / video scales without forcing the row taller. */
+    height: min(580px, calc(100vh - 300px));
   }
   .dual-grid > .dual-card.twin     { grid-column: 1; grid-row: 1; }
   .dual-grid > .dual-card.fusion   { grid-column: 1; grid-row: 2; }
