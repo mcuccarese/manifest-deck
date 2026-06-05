@@ -3303,6 +3303,9 @@
     const laneRect = lane.getBoundingClientRect();
     const laneW = laneRect.width;
     const laneH = laneRect.height;
+    const frameRect = document.querySelector('#frame-1').getBoundingClientRect();
+    // Rightmost label-x allowed (lane-relative) so labels stay inside frame.
+    const RIGHT_BOUND = (frameRect.right - laneRect.left) - 16;
 
     const allDots = [...row.querySelectorAll('.track-dot')];
 
@@ -3349,7 +3352,7 @@
 
     const pad = 6;
     const STEP = 6;
-    const MAX_X_RIGHT = laneW + 500;  // far into right margin
+    const MAX_X_RIGHT = RIGHT_BOUND;  // bounded by frame, not arbitrary
     const MIN_X_LEFT  = -200;         // into left margin (last resort)
     // Cost weights: horizontal travel is cheap (use whitespace!),
     // vertical travel is expensive (stay near the dot row).
