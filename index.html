@@ -3349,14 +3349,15 @@
 
     const pad = 6;
     const STEP = 6;
-    const MAX_X_RIGHT = laneW + 400;  // far into right margin
-    const MIN_X_LEFT  = -240;         // into left margin
+    const MAX_X_RIGHT = laneW + 500;  // far into right margin
+    const MIN_X_LEFT  = -200;         // into left margin (last resort)
     // Cost weights: horizontal travel is cheap (use whitespace!),
     // vertical travel is expensive (stay near the dot row).
     const HX_W = 0.4;
     const VY_W = 2.5;
-    // Prefer right side by penalizing left slightly.
-    const LEFT_BIAS = 30;
+    // Prefer right side strongly so labels follow dot order.
+    // Left is only chosen when no right slot exists at any row.
+    const LEFT_BIAS = 600;
 
     callouts.forEach(item => {
       let best = null;
