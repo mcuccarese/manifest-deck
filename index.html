@@ -3281,5 +3281,163 @@
   })();
 </script>
 
+<!-- ============================================================
+     Frame 1: automatic callout label placement
+     Greedy slot assignment. For each .callout-* dot, find the
+     closest non-conflicting label slot from a set of candidate
+     y-rows (above lane, top, upper-mid, lower-mid, bottom, below
+     lane) and either side of the dot. Treats tier-based labels as
+     fixed obstacles. Writes back as callout-tl/tr/bl/br + CSS vars.
+     ============================================================ -->
+<script>
+(function() {
+  function frame1Layout() {
+    const frame = document.querySelector('#frame-1');
+    if (!frame) return;
+    frame.querySelectorAll('.track-row').forEach(layoutTrack);
+  }
+
+  function layoutTrack(row) {
+    const lane = row.querySelector('.track-lane');
+    if (!lane) return;
+    const laneRect = lane.getBoundingClientRect();
+    const laneW = laneRect.width;
+    const laneH = laneRect.height;
+
+    const allDots = [...row.querySelectorAll('.track-dot')];
+
+    const items = allDots.map(dot => {
+      const leftPct = parseFloat(dot.style.left);
+      const topPct = parseFloat(dot.style.top) || 50;
+      const dotX = (leftPct / 100) * laneW;
+      const dotY = (topPct / 100) * laneH;
+      const tag = dot.querySelector('.tag');
+      const sub = dot.querySelector('.sub');
+      const tagR = tag.getBoundingClientRect();
+      const subR = sub.getBoundingClientRect();
+      const labelW = Math.max(tagR.width, subR.width);
+      const labelH = subR.bottom - tagR.top;
+      const isCallout = /callout-/.test(dot.className);
+      return {
+        dot, dotX, dotY, labelW, labelH, isCallout,
+        // current rendered position (lane-relative) for tier obstacles
+        curX: Math.min(tagR.left, subR.left) - laneRect.left,
+        curY: tagR.top - laneRect.top,
+      };
+    });
+
+    // Tier (non-callout) labels are fixed obstacles
+    const placed = items.filter(i => !i.isCallout).map(i => ({
+      x: i.curX, y: i.curY, w: i.labelW, h: i.labelH
+    }));
+
+    // Sort callouts by dotX so left-to-right callouts get first dibs
+    // on nearby slots (anti-crossing heuristic)
+    const callouts = items.filter(i => i.isCallout);
+    callouts.sort((a, b) => a.dotX - b.dotX);
+
+    // Candidate slot Y rows (lane-relative)
+    const slotYs = [
+      -34,            // above the lane (in inter-lane gap)
+      -6,             // just inside lane top
+      laneH/2 - 36,   // upper-mid
+      laneH/2 + 8,    // lower-mid (just below dot row)
+      laneH - 16,     // bottom of lane
+      laneH + 14,     // just below lane
+    ];
+
+    const pad = 6;
+    const STEP = 6;
+    const MAX_X_RIGHT = laneW + 400;  // far into right margin
+    const MIN_X_LEFT  = -240;         // into left margin
+
+    callouts.forEach(item => {
+      let best = null;
+
+      for (const slotY of slotYs) {
+        // skip if slot overlaps the dot row vertically
+        const aboveDot = slotY + item.labelH + pad < item.dotY;
+        const belowDot = slotY > item.dotY + pad;
+        if (!aboveDot && !belowDot) continue;
+
+        // Try scanning RIGHT from just past dot
+        let x = item.dotX + 14;
+        let n = 0;
+        while (x + item.labelW < MAX_X_RIGHT && n < 220) {
+          if (!collides({x, y: slotY, w: item.labelW, h: item.labelH}, placed, pad)) {
+            const cost = (x - item.dotX) + Math.abs(slotY - item.dotY) * 0.75;
+            if (!best || cost < best.cost) {
+              best = { x, y: slotY, dir: 'r', aboveDot, cost };
+            }
+            break;
+          }
+          x += STEP; n++;
+        }
+
+        // Try scanning LEFT from just before dot
+        x = item.dotX - 14 - item.labelW;
+        n = 0;
+        while (x > MIN_X_LEFT && n < 220) {
+          if (!collides({x, y: slotY, w: item.labelW, h: item.labelH}, placed, pad)) {
+            const cost = (item.dotX - x - item.labelW) + Math.abs(slotY - item.dotY) * 0.75;
+            if (!best || cost < best.cost) {
+              best = { x, y: slotY, dir: 'l', aboveDot, cost };
+            }
+            break;
+          }
+          x -= STEP; n++;
+        }
+      }
+
+      if (!best) return; // give up (label hidden? for now skip)
+
+      const dirClass = 'callout-' +
+        (best.aboveDot ? 't' : 'b') +
+        (best.dir === 'r' ? 'r' : 'l');
+      const dx = Math.max(0, Math.abs(best.x + (best.dir === 'r' ? 0 : item.labelW) - item.dotX) - 8);
+      const dy = Math.abs(best.y - item.dotY);
+
+      item.dot.classList.remove('callout-tl','callout-tr','callout-bl','callout-br');
+      item.dot.classList.add(dirClass);
+      item.dot.style.setProperty('--lbl-dx', dx + 'px');
+      item.dot.style.setProperty('--lbl-dy', dy + 'px');
+
+      placed.push({ x: best.x, y: best.y, w: item.labelW, h: item.labelH });
+    });
+  }
+
+  function collides(s, list, pad) {
+    for (const p of list) {
+      if (s.x < p.x + p.w + pad &&
+          s.x + s.w + pad > p.x &&
+          s.y < p.y + p.h + pad &&
+          s.y + s.h + pad > p.y) return true;
+    }
+    return false;
+  }
+
+  function runLayout() {
+    const go = () => requestAnimationFrame(frame1Layout);
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(go);
+    } else {
+      setTimeout(go, 200);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runLayout);
+  } else {
+    runLayout();
+  }
+
+  let resizeT;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(frame1Layout, 180);
+  });
+})();
+</script>
+
 </body>
 </html>
