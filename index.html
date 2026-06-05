@@ -43,7 +43,16 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    /* Snap the viewport to each frame's top edge so the user can land
+       cleanly on a frame without the next one peeking in from below.
+       'proximity' is gentler than 'mandatory'  it only snaps when the
+       scroll lands near a boundary, so fine-grained scrolling inside a
+       frame still works. */
+    scroll-snap-type: y proximity;
+  }
 
   body {
     background: var(--bg);
@@ -138,6 +147,8 @@
     background: var(--bg);
     overflow: hidden;
     display: flex; align-items: center; justify-content: center;
+    /* Paired with html { scroll-snap-type: y proximity } above. */
+    scroll-snap-align: start;
   }
   .frame-inner {
     max-width: 1240px; width: 100%;
