@@ -43,17 +43,7 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  html {
-    scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
-    /* Snap the viewport to each frame's top edge so the user can land
-       cleanly on a frame without the next one peeking in from below.
-       'mandatory' is firmer than 'proximity'  every scroll gesture
-       commits to a snap point, which Chrome respects more reliably with
-       chunky mouse-wheel scrolling. Paired with scroll-snap-stop: always
-       on .frame so a single wheel-tick advances exactly one frame. */
-    scroll-snap-type: y mandatory;
-  }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
 
   body {
     background: var(--bg);
@@ -157,11 +147,6 @@
     background: var(--bg);
     overflow: hidden;
     display: flex; align-items: center; justify-content: center;
-    /* Paired with html { scroll-snap-type: y mandatory } above.
-       scroll-snap-stop: always prevents a single big scroll gesture from
-       skipping past a frame  one wheel-click = one frame transition. */
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
   }
   .frame-inner {
     max-width: 1240px; width: 100%;
@@ -787,8 +772,10 @@
     /* Explicit height so 1fr rows divide a known parent. Sized to leave
        room for the eyebrow + headline + lede + frame padding above and
        still fit a 900px viewport. Cards have overflow:hidden so the
-       inner SVG / video scales without forcing the row taller. */
-    height: min(580px, calc(100vh - 300px));
+       inner SVG / video scales without forcing the row taller. Cap
+       lowered from 580 to 540 on 2026-06-05 to absorb the lede growth
+       and keep Frame 5 within 100vh without scroll-snap. */
+    height: min(540px, calc(100vh - 340px));
   }
   .dual-grid > .dual-card.twin     { grid-column: 1; grid-row: 1; }
   .dual-grid > .dual-card.fusion   { grid-column: 1; grid-row: 2; }
