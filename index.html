@@ -3332,12 +3332,14 @@
 
     items.sort((a, b) => a.dotX - b.dotX);
 
-    // Many slot Y rows extending well beyond the lane so labels can
-    // stack vertically into the inter-lane whitespace.
-    // 30px step ≈ label height (28px) + a hair of breathing room.
+    // Slot Y rows constrained to lane + half the inter-lane gap so
+    // labels never invade an adjacent track. Step 28px ≈ label height
+    // (gives 0px gap between stacked labels, leader pad provides
+    // the rest). Y_OUTSIDE = how far above/below lane edge to allow.
+    const Y_OUTSIDE = 18;
     const slotYs = [];
-    for (let y = laneH/2 - 26; y >= -90; y -= 30) slotYs.push(y);
-    for (let y = laneH/2 + 22; y <= laneH + 90; y += 30) slotYs.push(y);
+    for (let y = laneH/2 - 24; y >= -Y_OUTSIDE; y -= 28) slotYs.push(y);
+    for (let y = laneH/2 + 22; y <= laneH + Y_OUTSIDE; y += 28) slotYs.push(y);
 
     const placed = [];
 
