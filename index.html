@@ -462,6 +462,59 @@
   .track-dot.t-d2.jog-l::after,  .track-dot.t-d2.jog-r::after,
   .track-dot.t-d2.jog-ll::after, .track-dot.t-d2.jog-rr::after,
   .track-dot.t-d2.jog-lll::after, .track-dot.t-d2.jog-rrr::after  { top: 50px; }
+
+  /* === CALLOUT LABEL SYSTEM ===
+     For dots in the dense 2024-2026 cluster where tier-based labels collide.
+     The label free-floats in nearby whitespace; a 1px L-shape leader (a
+     vertical leg + a horizontal leg) connects it back to the dot. Pick a
+     direction class (callout-tl/tr/bl/br) per quadrant; set --lbl-dx and
+     --lbl-dy magnitudes (px) via inline style. Do NOT also use t-u/t-d. */
+  .track-dot[class*="callout-"] {
+    --lbl-dx: 80px;
+    --lbl-dy: 40px;
+  }
+  .track-dot[class*="callout-"] .tag,
+  .track-dot[class*="callout-"] .sub {
+    position: absolute;
+    white-space: nowrap;
+    transform: none;
+    left: auto;
+    right: auto;
+  }
+  /* Tag/sub anchored at the far end of the L, per quadrant.
+     The 8px offset gives a small visual gap between leader and text. */
+  .track-dot.callout-tl .tag { right: calc(var(--lbl-dx) + 8px); top: calc(-1 * var(--lbl-dy) - 6px); text-align: right; }
+  .track-dot.callout-tl .sub { right: calc(var(--lbl-dx) + 8px); top: calc(-1 * var(--lbl-dy) + 6px); text-align: right; }
+  .track-dot.callout-tr .tag { left:  calc(var(--lbl-dx) + 8px); top: calc(-1 * var(--lbl-dy) - 6px); text-align: left;  }
+  .track-dot.callout-tr .sub { left:  calc(var(--lbl-dx) + 8px); top: calc(-1 * var(--lbl-dy) + 6px); text-align: left;  }
+  .track-dot.callout-bl .tag { right: calc(var(--lbl-dx) + 8px); top: calc(var(--lbl-dy) - 6px);      text-align: right; }
+  .track-dot.callout-bl .sub { right: calc(var(--lbl-dx) + 8px); top: calc(var(--lbl-dy) + 6px);      text-align: right; }
+  .track-dot.callout-br .tag { left:  calc(var(--lbl-dx) + 8px); top: calc(var(--lbl-dy) - 6px);      text-align: left;  }
+  .track-dot.callout-br .sub { left:  calc(var(--lbl-dx) + 8px); top: calc(var(--lbl-dy) + 6px);      text-align: left;  }
+
+  /* Vertical leg of L: from dot up (tl/tr) or down (bl/br) to label-y */
+  .track-dot.callout-tl::before,
+  .track-dot.callout-tr::before {
+    left: 4.5px; bottom: 5px; width: 1px;
+    height: var(--lbl-dy);
+    background: var(--rule-strong);
+  }
+  .track-dot.callout-bl::before,
+  .track-dot.callout-br::before {
+    left: 4.5px; top: 5px; width: 1px;
+    height: var(--lbl-dy);
+    background: var(--rule-strong);
+  }
+  /* Horizontal leg of L: from above/below the dot out to label-x */
+  .track-dot[class*="callout-"]::after {
+    display: block; height: 1px;
+    background: var(--rule-strong);
+  }
+  .track-dot.callout-tl::after { top: calc(-1 * var(--lbl-dy) + 5px); right: 5px; left: auto; width: var(--lbl-dx); }
+  .track-dot.callout-tr::after { top: calc(-1 * var(--lbl-dy) + 5px); left: 5px; right: auto; width: var(--lbl-dx); }
+  .track-dot.callout-bl::after { top: calc(var(--lbl-dy) + 5px);      right: 5px; left: auto; width: var(--lbl-dx); }
+  .track-dot.callout-br::after { top: calc(var(--lbl-dy) + 5px);      left: 5px; right: auto; width: var(--lbl-dx); }
+
   /* Year axis at the bottom of the tracks block */
   .tracks-axis {
     position: relative;
@@ -1509,7 +1562,7 @@
             <!-- AlphaFold3 launch: May 2024 (server-limited at launch). -->
             <div class="track-dot t-u2" style="left: 72%; top: 43%;"><span class="tag">AlphaFold3</span><span class="sub">May 2024 · server</span></div>
             <!-- ESM3 (EvolutionaryScale): Jun 2024 — non-commercial at launch; Science Jan 2025. -->
-            <div class="track-dot t-u1 jog-r" style="left: 73%; top: 32%;"><span class="tag">ESM3</span><span class="sub">Jun 2024 · NC</span></div>
+            <div class="track-dot callout-tr" style="left: 73%; top: 42%; --lbl-dx: 70px; --lbl-dy: 50px;"><span class="tag">ESM3</span><span class="sub">Jun 2024 · NC</span></div>
             <!-- Chai-1 (co-folding, open weights): Sep 2024. -->
             <div class="track-dot t-d2 jog-r" style="left: 74%; top: 60%;"><span class="tag">Chai-1</span><span class="sub">Sep 2024 · open weights</span></div>
             <!-- Boltz-1 (MIT): Nov 2024. -->
@@ -1529,9 +1582,9 @@
             <!-- Protenix-v1 (ByteDance): Feb 2026 — AF3-class all-atom, Apache 2.0. -->
             <div class="track-dot t-u2 jog-r" style="left: 86%; top: 30%;"><span class="tag">Protenix-v1</span><span class="sub">Feb 2026 · open</span></div>
             <!-- Isomorphic Labs Drug Design Engine: Feb 2026 — proprietary, ~2x AF3 on hard P-L. -->
-            <div class="track-dot t-d2 jog-r" style="left: 87%; top: 75%;"><span class="tag">IsoDDE</span><span class="sub">Feb 2026 · proprietary</span></div>
+            <div class="track-dot callout-br" style="left: 87%; top: 55%; --lbl-dx: 80px; --lbl-dy: 55px;"><span class="tag">IsoDDE</span><span class="sub">Feb 2026 · proprietary</span></div>
             <!-- ESMFold2 / Biohub protein world model: May 2026 — open; matches/exceeds AF3. -->
-            <div class="track-dot t-u1 jog-r" style="left: 89%; top: 38%;"><span class="tag">ESMFold2</span><span class="sub">May 2026 · open</span></div>
+            <div class="track-dot callout-tr" style="left: 89%; top: 50%; --lbl-dx: 90px; --lbl-dy: 60px;"><span class="tag">ESMFold2</span><span class="sub">May 2026 · open</span></div>
           </div>
         </div>
 
