@@ -302,8 +302,16 @@
   #frame-2 .vs-col .verdict { padding-top: 7px; margin-top: 9px; font-size: 11px; }
 
   /* Frame 5 (architecture) — tighter padding to fit the dual-grid stack
-     within a centered viewport. Typography inherits unified defaults. */
+     within a centered viewport. Typography inherits unified defaults.
+     The frame is 80px taller than viewport with an 80px padding-bottom,
+     so flex centering still places content inside the visible 900px
+     viewport and the bottom 80px acts as a scroll-overshoot buffer
+     (chunky trackpad inertia, mousewheel jumps) before Frame 6 enters. */
   #frame-5 .frame-inner { padding: 30px 56px 22px; }
+  #frame-5 {
+    min-height: calc(100vh + 80px);
+    padding-bottom: 80px;
+  }
   /* Frame 6 (value function) — tighter padding to fit verticals graphic +
      syntax cards + 16% callout. Typography inherits unified defaults. */
   #frame-6 .frame-inner { padding: 30px 56px 22px; }
