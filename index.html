@@ -150,34 +150,35 @@
   }
   .frame-inner {
     max-width: 1240px; width: 100%;
-    padding: 80px 64px 64px;
+    padding: 36px 56px 28px;
   }
   .frame-eyebrow {
     font-family: var(--mono);
-    font-size: 12.5px; text-transform: uppercase;
+    font-size: 11.5px; text-transform: uppercase;
     letter-spacing: 0.20em; color: var(--accent);
-    margin: 0 0 16px;
+    margin: 0 0 10px;
+    font-weight: 600;
   }
   .frame-headline {
     font-family: var(--display);
-    font-size: 52px; line-height: 1.06;
-    letter-spacing: -0.022em; font-weight: 500;
+    font-size: 36px; line-height: 1.1;
+    letter-spacing: -0.018em; font-weight: 600;
     color: var(--ink);
-    margin: 0 0 16px;
+    margin: 0 0 10px;
   }
   .frame-headline em {
-    font-style: italic; font-weight: 500; color: var(--accent);
+    font-style: italic; font-weight: 600; color: var(--accent);
   }
   .frame-headline strong {
-    font-weight: 600; color: var(--warm); font-style: normal;
+    font-weight: 700; color: var(--warm); font-style: normal;
   }
   .frame-lede {
     font-family: var(--body);
-    font-size: 20px; line-height: 1.55;
+    font-size: 16px; line-height: 1.5;
     color: var(--ink-muted);
     margin: 0;
     font-weight: 400;
-    max-width: 64ch;
+    max-width: none;
   }
   .frame-lede strong { color: var(--ink); font-weight: 600; }
   .frame-lede em { font-style: italic; color: var(--accent); font-weight: 500; }
@@ -274,52 +275,38 @@
     margin-top: 18px;
     padding: 0 8px 30px;
   }
-  /* Frame 1 fits 4 tracks + axis + headline + lede in one viewport.
-     The chart is the focus; trim heading typography accordingly. */
-  #frame-1 .frame-inner { padding: 30px 56px 16px; }
-  #frame-1 .frame-headline { font-size: 32px; line-height: 1.05; margin: 0 0 8px; max-width: none; }
-  #frame-1 .frame-lede { font-size: 14px; line-height: 1.45; max-width: none; }
-  #frame-1 .frame-eyebrow { margin: 0 0 8px; font-size: 11px; }
+  /* Frame 1 — tight padding to keep the 4 timeline tracks + axis below a
+     standard header. Typography inherits unified defaults. */
+  #frame-1 .frame-inner { padding: 28px 56px 20px; }
 
-  /* Frame 2 — compress so the diagnosis + dilemma + vs-stack all fit in
-     one viewport. Same approach as Frame 1: smaller headline/lede + tighter
-     padding throughout. */
-  #frame-2 .frame-inner { padding: 26px 56px 14px; }
-  #frame-2 .frame-headline { font-size: 32px; line-height: 1.06; margin: 0 0 6px; max-width: none; }
-  #frame-2 .frame-lede { font-size: 14px; line-height: 1.45; max-width: none; }
-  #frame-2 .frame-eyebrow { margin: 0 0 8px; font-size: 11px; }
-  #frame-2 .diagnosis { margin-top: 14px; padding: 12px 16px 14px; }
-  #frame-2 .diagnosis-title { font-size: 14.5px; margin-bottom: 10px; }
+  /* Frame 2 — tight padding so diagnosis + dilemma + vs-stack fit one
+     viewport. Typography inherits unified defaults. */
+  #frame-2 .frame-inner { padding: 20px 56px 16px; }
+  #frame-2 .frame-headline { margin-bottom: 6px; }
+  #frame-2 .frame-lede { font-size: 14.5px; line-height: 1.45; }
+  #frame-2 .diagnosis { margin-top: 10px; padding: 10px 14px 12px; }
+  #frame-2 .diagnosis-title { font-size: 13px; margin-bottom: 8px; }
   #frame-2 .diag-figure svg { max-width: 380px; }
-  #frame-2 .diag-figure h5 { font-size: 13px; margin-bottom: 6px; }
-  #frame-2 .diag-figure h5 .num { font-size: 11px; }
-  #frame-2 .dilemma-block { margin-top: 18px; }
-  #frame-2 .dilemma-block > p:first-child { font-size: 10px !important; margin-bottom: 4px !important; }
-  #frame-2 .dilemma-block h3 { font-size: 22px !important; margin-bottom: 4px !important; }
-  #frame-2 .dilemma-block > p:last-child { font-size: 13px !important; }
-  #frame-2 .vs-stack { margin-top: 14px; gap: 18px; }
-  #frame-2 .vs-col { padding: 12px 14px 14px; }
-  #frame-2 .vs-col .tag { font-size: 9px; margin-bottom: 6px; }
-  #frame-2 .vs-col h4 { font-size: 13.5px; margin-bottom: 8px; }
+  #frame-2 .diag-figure h5 { font-size: 12.5px; margin-bottom: 5px; }
+  #frame-2 .diag-figure h5 .num { font-size: 10.5px; }
+  #frame-2 .dilemma-block { margin-top: 12px; }
+  #frame-2 .dilemma-block > p:first-child { font-size: 10px !important; margin-bottom: 3px !important; }
+  #frame-2 .dilemma-block h3 { font-size: 21px !important; margin-bottom: 3px !important; }
+  #frame-2 .dilemma-block > p:last-child { font-size: 12.5px !important; }
+  #frame-2 .vs-stack { margin-top: 10px; gap: 16px; }
+  #frame-2 .vs-col { padding: 10px 12px 12px; }
+  #frame-2 .vs-col .tag { font-size: 9px; margin-bottom: 5px; }
+  #frame-2 .vs-col h4 { font-size: 13px; margin-bottom: 6px; }
   #frame-2 .vs-col ul { gap: 4px; }
-  #frame-2 .vs-col li { font-size: 12px; line-height: 1.35; }
-  #frame-2 .vs-col .verdict { padding-top: 8px; margin-top: 10px; font-size: 11.5px; }
+  #frame-2 .vs-col li { font-size: 11.5px; line-height: 1.35; }
+  #frame-2 .vs-col .verdict { padding-top: 7px; margin-top: 9px; font-size: 11px; }
 
-  /* Frame 5 — minor compression (47px over): trim padding + headline.
-     The lede goes full-width so it wraps to 1-2 lines and gives the
-     three diagrams below more vertical room. */
-  #frame-6 .frame-inner { padding: 32px 56px 18px; }
-  #frame-5 .frame-inner { padding: 56px 56px 36px; }
-  #frame-5 .frame-headline { font-size: 38px; line-height: 1.1; margin: 0 0 10px; }
-  #frame-5 .frame-lede { font-size: 16px; line-height: 1.5; max-width: none; }
-  /* Frame 5 sits 80px taller than the viewport so small scroll overshoots
-     (chunky mouse-wheel, trackpad inertia) don't expose the next frame at
-     the bottom. align-items: flex-start keeps content anchored at the top
-     of the frame; the extra 80px lives entirely below content as dark
-     buffer that Frame 6 covers first before reaching anything visible.
-     (Center alignment would clip the dual-grid bottom against the viewport
-     because frame_inner is nearly as tall as the viewport.) */
-  #frame-5 { min-height: calc(100vh + 80px); align-items: flex-start; }
+  /* Frame 5 (architecture) — tighter padding to fit the dual-grid stack
+     within a centered viewport. Typography inherits unified defaults. */
+  #frame-5 .frame-inner { padding: 30px 56px 22px; }
+  /* Frame 6 (value function) — tighter padding to fit verticals graphic +
+     syntax cards + 16% callout. Typography inherits unified defaults. */
+  #frame-6 .frame-inner { padding: 30px 56px 22px; }
   .track-row {
     position: relative;
     display: grid;
@@ -1387,8 +1374,9 @@
      use-of-funds and portfolio trajectory.
      Frame-8-specific headline/lede overrides to compress vertical.
      ============================================================ */
-  .finance-headline { font-size: 34px !important; line-height: 1.05; margin-bottom: 6px; }
-  .finance-lede { font-size: 13.5px !important; line-height: 1.4; margin-top: 2px; max-width: 64ch; }
+  /* Finance frame (now Frame 09) inherits the unified .frame-headline /
+     .frame-lede defaults; per-frame padding override below. */
+  #frame-9 .frame-inner { padding: 28px 56px 22px; }
   .pareto-section {
     display: grid;
     grid-template-columns: 0.7fr 1fr;
@@ -2790,8 +2778,8 @@
     <div class="frame-inner">
       <div class="reveal-up">
         <p class="frame-eyebrow">09 &middot; The math</p>
-        <h1 class="frame-headline finance-headline"><em>$100M</em> tests the hypothesis. The lab grows from there.</h1>
-        <p class="frame-lede finance-lede">Every dollar in the Series A is a simulation output. The first one is the lab itself, built to the smallest spec that cleanly tests the Manifest hypothesis at portfolio scale.</p>
+        <h1 class="frame-headline"><em>$100M</em> tests the hypothesis. The lab grows from there.</h1>
+        <p class="frame-lede">Every dollar in the Series A is a simulation output. The first one is the lab itself, built to the smallest spec that cleanly tests the Manifest hypothesis at portfolio scale.</p>
       </div>
 
       <!-- Pareto frontier (2026 scenario, compact aspect): Series A pick at
