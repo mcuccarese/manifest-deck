@@ -289,17 +289,53 @@
   #frame-2 .diag-figure svg { max-width: 380px; }
   #frame-2 .diag-figure h5 { font-size: 12.5px; margin-bottom: 5px; }
   #frame-2 .diag-figure h5 .num { font-size: 10.5px; }
-  #frame-2 .dilemma-block { margin-top: 12px; }
-  #frame-2 .dilemma-block > p:first-child { font-size: 10px !important; margin-bottom: 3px !important; }
-  #frame-2 .dilemma-block h3 { font-size: 21px !important; margin-bottom: 3px !important; }
-  #frame-2 .dilemma-block > p:last-child { font-size: 12.5px !important; }
-  #frame-2 .vs-stack { margin-top: 10px; gap: 16px; }
-  #frame-2 .vs-col { padding: 10px 12px 12px; }
-  #frame-2 .vs-col .tag { font-size: 9px; margin-bottom: 5px; }
-  #frame-2 .vs-col h4 { font-size: 13px; margin-bottom: 6px; }
-  #frame-2 .vs-col ul { gap: 4px; }
-  #frame-2 .vs-col li { font-size: 11.5px; line-height: 1.35; }
-  #frame-2 .vs-col .verdict { padding-top: 7px; margin-top: 9px; font-size: 11px; }
+  /* Frame 2 — gap-detail two-column text block replacing the old dilemma /
+     vs-stack. Pure text columns, no card backgrounds, matched against the
+     diagnosis figure block above. */
+  .gap-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+    margin-top: 18px;
+    padding: 0 4px;
+  }
+  .gap-detail-col h4 {
+    font-family: var(--display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 10px;
+    letter-spacing: -0.012em;
+  }
+  .gap-detail-col p {
+    margin: 0 0 10px;
+    font-family: var(--body);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .gap-detail-col p:last-child { margin-bottom: 0; }
+  .gap-detail-col em { font-style: italic; color: var(--ink); font-weight: 500; }
+  .gap-detail-col .eg-tag {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    font-style: normal;
+    color: var(--ink-muted);
+    letter-spacing: 0.04em;
+    margin: 4px 0 4px;
+  }
+  .gap-detail-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .gap-detail-col li {
+    font-family: var(--body);
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin-bottom: 2px;
+  }
 
   /* Frame 5 (architecture) — tighter padding to fit the dual-grid stack
      within a centered viewport. Typography inherits unified defaults.
@@ -1932,21 +1968,21 @@
     <div class="frame-inner">
       <div class="reveal-up">
         <p class="frame-eyebrow">02 &middot; The gap</p>
-        <h1 class="frame-headline">Technology for <em>generating ideas</em> is far outpacing technology for <strong>advancing programs</strong>.</h1>
-        <p class="frame-lede">Models and platforms produce hypotheses faster than any organization can prosecute them. The bottleneck is designing and executing the <em>program-decisive</em> experiment, and that step is loaded with human latency.</p>
+        <h1 class="frame-headline"><em>Better models.</em> Harder, more <strong>context-dependent</strong> validation.</h1>
+        <p class="frame-lede">Foundation models for biology and chemistry are accelerating. As they bypass easily-predicted activity and properties, the validation that remains is increasingly context-dependent and harder to plan. Status-quo logistics and decision architecture cannot keep pace.</p>
       </div>
 
       <!-- ============================================================
            Two-figure diagnosis: (1) return loop speed, (2) outcome impact
            ============================================================ -->
       <div class="diagnosis reveal-up">
-        <p class="diagnosis-title">Lab-in-the-loop suffers two backpropagation problems.</p>
+        <p class="diagnosis-title">As models improve, two backpropagation gaps widen.</p>
 
         <div class="diag-grid">
 
-          <!-- FIGURE 1: Return loop speed (stair cascade with brackets) -->
+          <!-- FIGURE 1: Model validation cascade with broken return -->
           <div class="diag-figure reveal-fade">
-            <h5><span class="num">(1)</span> Return loop speed</h5>
+            <h5><span class="num">(1)</span> Model validation</h5>
             <svg viewBox="0 0 480 320" aria-label="Source data, Model, Hypothesis, Experiment cascade down-right; the return path is hypothesis-dependent and broken.">
 
               <defs>
@@ -2019,46 +2055,42 @@
               <path d="M 18 292 Q 18 306 32 306 L 290 306 Q 304 306 304 292"
                     fill="none" stroke="#d97706" stroke-width="1.5"/>
               <text x="161" y="322" text-anchor="middle" font-family="Inter, sans-serif"
-                    font-size="12.5" font-weight="500" fill="#d97706">hypothesis-dependent &middot; days to months</text>
+                    font-size="12.5" font-weight="500" fill="#d97706">context-dependent &middot; days to months</text>
 
             </svg>
           </div>
 
-          <!-- FIGURE 2: Outcome impact (complete gray circle + tiny colored slices on top) -->
+          <!-- FIGURE 2: Outcome prediction — stacked bar chart showing how
+               prediction capability extends across the discovery pipeline
+               over time. Today's models are confident near Insight; future
+               models extend toward Clinic. Bars populated by JS for clean
+               markup; see populateGapBars() in the script block. -->
           <div class="diag-figure reveal-fade" style="transition-delay: 0.15s;">
-            <h5><span class="num">(2)</span> Outcome impact</h5>
-            <svg viewBox="0 0 460 320" aria-label="Pie chart: scaled platform loops cover a tiny sliver; critical program gate knowledge is the complete circle.">
+            <h5><span class="num">(2)</span> Outcome prediction</h5>
+            <svg viewBox="0 0 480 340" aria-label="Stacked bar chart: prediction capability across discovery stages (Insight to Clinic) at three time horizons (Today, 1-2 years, Beyond).">
+              <defs>
+                <marker id="gap-axis-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#0a0e1a"/>
+                </marker>
+              </defs>
 
-              <!-- Complete gray circle (critical program gate knowledge = everything) -->
-              <circle cx="170" cy="160" r="110" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1"/>
+              <!-- Y-axis with up arrow + "Prediction" label rotated -->
+              <line x1="60" y1="285" x2="60" y2="40" stroke="#0a0e1a" stroke-width="1.5" marker-end="url(#gap-axis-arr)"/>
+              <text x="32" y="175" text-anchor="middle" transform="rotate(-90 32 175)" font-family="Inter, sans-serif" font-size="14" font-weight="600" fill="#0a0e1a">Prediction</text>
 
-              <!-- Tiny colored slices sit ON TOP of the gray circle.
-                   Center (170,160), radius 110. Angles measured clockwise from 12 o'clock.
-                   Blue slice: 0° → 22° (~6%)
-                   Green slice: 22° → 40° (~5%) -->
-              <g transform="translate(170, 160)">
-                <!-- Blue slice: ~22° from 0° -->
-                <path d="M 0 0 L 0 -110 A 110 110 0 0 1 41.19 -101.97 Z"
-                      fill="#0891b2" stroke="#ffffff" stroke-width="1"/>
-                <!-- Green slice: 22° to 40° -->
-                <path d="M 0 0 L 41.19 -101.97 A 110 110 0 0 1 70.71 -84.36 Z"
-                      fill="#16a34a" stroke="#ffffff" stroke-width="1"/>
-              </g>
+              <!-- X-axis with right arrow -->
+              <line x1="60" y1="285" x2="460" y2="285" stroke="#0a0e1a" stroke-width="1.5" marker-end="url(#gap-axis-arr)"/>
+              <text x="78" y="312" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0a0e1a">Insight</text>
+              <text x="448" y="312" text-anchor="end" font-family="Inter, sans-serif" font-size="14" font-weight="700" fill="#0a0e1a">Clinic</text>
 
-              <!-- Leader line + label: "Scaled platform loops" → the colored sliver (upper-right of pie) -->
-              <line x1="232" y1="78" x2="296" y2="48" stroke="#475569" stroke-width="1"/>
-              <line x1="296" y1="48" x2="370" y2="48" stroke="#475569" stroke-width="1"/>
-              <text x="380" y="44" font-family="Inter, sans-serif" font-size="13.5" fill="#0a0e1a" font-weight="500">Scaled</text>
-              <text x="380" y="60" font-family="Inter, sans-serif" font-size="13.5" fill="#0a0e1a" font-weight="500">platform loops</text>
+              <!-- Series labels: stacked on the left margin where each
+                   color's top edge lands in the leftmost bars. -->
+              <text x="76" y="100" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#1d4ed8">Beyond</text>
+              <text x="76" y="180" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#9d174d">1-2 y</text>
+              <text x="76" y="240" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#d97706">Today</text>
 
-              <!-- Leader line + label: "Critical program gate knowledge" → the gray majority -->
-              <line x1="80" y1="200" x2="50" y2="220" stroke="#475569" stroke-width="1"/>
-              <line x1="50" y1="220" x2="20" y2="220" stroke="#475569" stroke-width="1"/>
-              <text x="14" y="216" text-anchor="end" font-family="Inter, sans-serif" font-size="13.5" fill="#0a0e1a" font-weight="500">Critical program</text>
-              <text x="14" y="232" text-anchor="end" font-family="Inter, sans-serif" font-size="13.5" fill="#0a0e1a" font-weight="500">gate knowledge</text>
-
-              <text x="230" y="300" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-style="italic" fill="#475569">scaled platforms often touch a thin slice of what impacts program decisions</text>
-
+              <!-- Bars populated by populateGapBars() -->
+              <g id="gap-bars"></g>
             </svg>
           </div>
 
@@ -2066,44 +2098,25 @@
       </div>
 
       <!-- ============================================================
-           The dilemma + speed vs decisiveness columns
+           Two-column gap detail: Orthogonal validation (current state)
+           and Right-shifted validation (anticipated future). Sets up the
+           "preparing for the wave" framing of the memo / pitch.
            ============================================================ -->
-      <div class="dilemma-block reveal-up">
-        <p style="font-family: var(--mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.16em; color: var(--ink-muted); margin: 0 0 8px; font-weight: 600;">The dilemma</p>
-        <h3 style="margin: 0 0 6px; font-family: var(--display); font-size: 30px; font-weight: 500; color: var(--ink); letter-spacing: -0.018em;">Speed <em style="color: var(--ink-faint); font-style: normal;">or</em> decisiveness. Today, you pick one.</h3>
-        <p style="margin: 0; font-family: var(--body); font-size: 17px; color: var(--ink-muted); line-height: 1.55; max-width: 70ch;">
-          Scaled platforms run the fast loop (data → model → cheap experiment → data). The decisive loop (model → hypothesis → bespoke experiment) doesn&rsquo;t scale, and that&rsquo;s the loop that advances programs.
-        </p>
-      </div>
-
-      <div class="vs-stack reveal-up">
-
-        <div class="vs-col">
-          <span class="tag">Choose speed</span>
-          <h4>Adapt scaled discovery platforms for validation</h4>
+      <div class="gap-detail reveal-up">
+        <div class="gap-detail-col">
+          <h4>Orthogonal validation</h4>
+          <p>The better a predictive model is from a scaled platform, the less it will need to be confirmed with the <em>same</em> setup. A good model can predict out of training distribution; that&rsquo;s where validation happens.</p>
+          <p class="eg-tag">e.g.</p>
           <ul>
-            <li>In vitro DMPK</li>
-            <li>Established binding assays</li>
-            <li>High-dimensional readouts in platform lines</li>
-            <li>Library-based synthesis</li>
+            <li>Novel target binding prediction &rarr; new binding assay</li>
+            <li>Activity in new patient context &rarr; new translational assay</li>
           </ul>
-          <div class="verdict"><strong>Ideal for advancing models.</strong> Not where program-decisive answers live.</div>
         </div>
-
-        <div class="vs-divider"><span>vs</span></div>
-
-        <div class="vs-col warm">
-          <span class="tag">Choose decisiveness</span>
-          <h4>Run the specific decisive experiments for the program</h4>
-          <ul>
-            <li>Specific context</li>
-            <li>Patient tissue</li>
-            <li>Hypothesis-driven synthesis</li>
-            <li>Patient-specific signal</li>
-          </ul>
-          <div class="verdict"><strong>Ideal for advancing programs.</strong> Complex, expensive, and riddled with latency.</div>
+        <div class="gap-detail-col">
+          <h4>Right-shifted validation</h4>
+          <p>We will be virtualizing biology at greater and greater complexity. Predicting outcomes at far later stages. Drug discovery programs will be running lead-op-like experiments to validate entirely in-silico-derived hypotheses.</p>
+          <p>We can completely change our concept of how many advanced programs a company can simultaneously run, if we set up our infrastructure for this future.</p>
         </div>
-
       </div>
     </div>
   </section>
@@ -3808,6 +3821,52 @@
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       obs.disconnect();
       tick(11.25);  // mid-S4 hold (S4 spans 9.0-12.0; 11.25 is in the hold)
+    }
+  })();
+
+  // ============================================================
+  // Frame 2: outcome-prediction stacked bar chart
+  // 32 bars across Insight to Clinic. Three stacked horizons
+  // (Today, 1-2 y, Beyond) extending further right over time.
+  // Seeded jitter for stable layout across loads.
+  // ============================================================
+  (function populateGapBars() {
+    const group = document.getElementById('gap-bars');
+    if (!group) return;
+    const xmlns = 'http://www.w3.org/2000/svg';
+    function rand(seed) {
+      const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+      return x - Math.floor(x);
+    }
+    const NUM_BARS = 32;
+    const X_START = 140;
+    const X_END = 452;
+    const BASELINE = 282;
+    const BAR_W = (X_END - X_START) / NUM_BARS;
+    for (let i = 0; i < NUM_BARS; i++) {
+      const t = i / (NUM_BARS - 1);
+      const x = X_START + i * BAR_W;
+      const today = Math.max(2, 42 * Math.exp(-2.6 * t)) * (0.55 + 0.7 * rand(i + 1));
+      const oneTwo = (28 + 22 * Math.exp(-Math.pow((t - 0.38) * 2.6, 2))) * (0.6 + 0.7 * rand(i + 100));
+      const beyond = (62 + 24 * Math.sin(t * Math.PI)) * (0.65 + 0.65 * rand(i + 200));
+      const yTodayTop = BASELINE - today;
+      const yOneTwoTop = yTodayTop - oneTwo;
+      const yBeyondTop = yOneTwoTop - beyond;
+      const w = BAR_W - 1.4;
+      const segments = [
+        { y: yTodayTop, h: today, fill: '#d97706' },
+        { y: yOneTwoTop, h: oneTwo, fill: '#9d174d' },
+        { y: yBeyondTop, h: beyond, fill: '#1d4ed8' }
+      ];
+      segments.forEach(s => {
+        const r = document.createElementNS(xmlns, 'rect');
+        r.setAttribute('x', x.toFixed(2));
+        r.setAttribute('y', s.y.toFixed(2));
+        r.setAttribute('width', w.toFixed(2));
+        r.setAttribute('height', s.h.toFixed(2));
+        r.setAttribute('fill', s.fill);
+        group.appendChild(r);
+      });
     }
   })();
 
