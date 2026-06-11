@@ -1827,8 +1827,10 @@
             <div class="track-dot method t-u2 jog-r" style="left: 12%;"><span class="tag">Perturb-seq method</span><span class="sub">Dec 2016 · method</span></div>
             <!-- RxRx1: Jun 2019 — Recursion phenomics. -->
             <div class="track-dot t-u1" style="left: 32%;"><span class="tag">RxRx1</span><span class="sub">Jun 2019 · open</span></div>
+            <!-- RxRx2: Jun 2019 — Recursion phenomics. -->
+            <div class="track-dot t-u1" style="left: 42%;"><span class="tag">RxRx2</span><span class="sub">Aug 2020 · open</span></div>
             <!-- Perturb-seq genome-scale (Replogle et al.): Jun 2022. -->
-            <div class="track-dot t-d1" style="left: 56%; top: 52%;"><span class="tag">Perturb-seq</span><span class="sub">Jun 2022 · open</span></div>
+            <div class="track-dot t-d1" style="left: 56%; top: 52%;"><span class="tag">WG Perturb-seq</span><span class="sub">Jun 2022 · open</span></div>
             <!-- RxRx3 (alongside MolRec): Jan 2023. -->
             <div class="track-dot t-u1" style="left: 61%; top: 47%;"><span class="tag">RxRx3</span><span class="sub">Jan 2023 · open</span></div>
             <!-- JUMP-CP paper anchor: Mar 2023. -->
@@ -1848,16 +1850,31 @@
           </div>
         </div>
 
-        <!-- TRACK 2 — Models (13 verified items including Geneformer, scGPT,
-             Evo 2, State, Tahoe-x1). Chai-1 split from Boltz-1; Boltz-2
-             corrected to Jun 2025. -->
+        <!-- TRACK 2 — Models. Enabling architectures (dashed-border .method
+             dots) interleaved with concrete model releases. Architecture
+             dots reflect the post-2016 addendum in
+             notes/biotech_timeline_v3.md: GNN/MPNN, Transformer, BERT/MLM,
+             DDPM, SE(3)-Transformer, ViT (self-supervised vision), Mamba
+             (state-space). -->
         <div class="track-row">
           <div class="track-label">Models</div>
           <div class="track-lane reveal-cascade">
+            <!-- GNN / Message Passing (Kipf & Welling GCN Sep 2016; Gilmer MPNN Apr 2017). Molecules-as-graphs in AF3, Boltz, Chai, Protenix. -->
+            <div class="track-dot method t-d1" style="left: 14%;"><span class="tag">GNN</span><span class="sub">Apr 2017 · arch</span></div>
             <!-- Transformer architecture (Vaswani et al., Jun 2017). -->
             <div class="track-dot method t-u1" style="left: 16%;"><span class="tag">Transformer</span><span class="sub">Jun 2017 · arch</span></div>
+            <!-- Masked language modeling / BERT (Devlin et al., Oct 2018). Objective behind ESM/ESMFold, Geneformer, scGPT, Tahoe-x1. -->
+            <div class="track-dot method t-u1" style="left: 27%;"><span class="tag">BERT (MLM)</span><span class="sub">Oct 2018 · arch</span></div>
+            <!-- SE(3)-Transformer (Fuchs et al., Jun 2020). Equivariant / geometric DL underlying AF2, RFdiffusion, co-folding models. -->
+            <div class="track-dot method t-d1" style="left: 39%;"><span class="tag">SE(3)-T</span><span class="sub">Jun 2020 · arch</span></div>
+            <!-- Denoising diffusion (Ho, Jain, Abbeel DDPM, Jun 2020). Engine for RFdiffusion, AF3 structure module, Boltz, Chai, Protenix, IsoDDE, ESMFold2. -->
+            <div class="track-dot method t-u2" style="left: 41%;"><span class="tag">DDPM</span><span class="sub">Jun 2020 · arch</span></div>
+            <!-- Self-supervised vision: ViT (Dosovitskiy et al., Oct 2020), DINO (Apr 2021), MAE (Nov 2021). Microscopy reps behind Phenom, OpenPhenom. -->
+            <div class="track-dot method t-d2" style="left: 43%;"><span class="tag">ViT</span><span class="sub">Oct 2020 · arch</span></div>
             <!-- AlphaFold2: Jul 2021. -->
             <div class="track-dot t-u1" style="left: 49%;"><span class="tag">AlphaFold2</span><span class="sub">Jul 2021 · open</span></div>
+            <!-- State-space / long-convolution: S4 (Gu et al., Oct 2021), Hyena (Feb 2023), Mamba (Gu & Dao, Dec 2023). Long-context backbone of Evo and Evo 2. -->
+            <div class="track-dot method t-d2" style="left: 66%;"><span class="tag">Mamba</span><span class="sub">Dec 2023 · arch</span></div>
             <!-- ESMFold (Metagenomic Atlas launch): Nov 2022. -->
             <div class="track-dot t-d1 jog-l" style="left: 60%; top: 53%;"><span class="tag">ESMFold</span><span class="sub">Nov 2022 · open</span></div>
             <!-- Geneformer (single-cell FM, Nature 2023): May 2023. -->
@@ -2572,7 +2589,7 @@
         </div>
         <div class="vf-syntax-card data">
           <span class="vf-syntax-tag">Data-explainable</span>
-          <p class="vf-syntax-quote">&ldquo;Target X is identified in STK11-mutant lung cancer. Perturbseq atlases show KO in T has strong enrichment with the STK11 LoF vs WT transcriptional delta in patient tumors. KO the target in allogenic T-cells with an STK11 mutant tumor line.&rdquo;</p>
+          <p class="vf-syntax-quote">&ldquo;Target X is identified in STK11-mutant lung cancer. Perturb-seq atlases show KO in T has strong enrichment with the STK11 LoF vs WT transcriptional delta in patient tumors. KO the target in allogenic T-cells with an STK11 mutant tumor line.&rdquo;</p>
           <p class="vf-syntax-note">Test is based on a patient-informed hypothesis, not simply advancing to the typical next step.</p>
         </div>
         <div class="vf-blind-callout">
