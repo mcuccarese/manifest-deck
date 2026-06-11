@@ -1964,8 +1964,10 @@
             <div class="track-dot green callout-br" style="left: 84%; top: 50%; --lbl-dx: 22px; --lbl-dy: 26px;"><span class="tag">UKB metab. (500k)</span><span class="sub">Nov 2025 · controlled</span></div>
             <!-- UK Biobank proteomics full (~600k, 5,400 proteins Olink): staggered from 2026 (full 2027). -->
             <div class="track-dot green callout-tr" style="left: 86%; top: 50%; --lbl-dx: 150px; --lbl-dy: 30px;"><span class="tag">UKB-PPP (600k)</span><span class="sub">from 2026 · controlled</span></div>
-            <!-- Enveda-180: May 29, 2026 — open (CC-BY 4.0) MS/MS + ion mobility spectral library, 1.1M spectra from 184k small molecules. -->
-            <div class="track-dot green t-d1 jog-l" style="left: 89%;"><span class="tag">Enveda-180</span><span class="sub">May 2026 · open</span></div>
+            <!-- Enveda-180: May 29, 2026 — open (CC-BY 4.0) MS/MS + ion mobility spectral library, 1.1M spectra from 184k small molecules.
+                 The `noauto` class opts this dot out of the Frame 1 auto-callout
+                 placement so the t-d1/jog-l manual positioning survives. -->
+            <div class="track-dot green t-d1 jog-l noauto" style="left: 89%;"><span class="tag">Enveda-180</span><span class="sub">May 2026 · open</span></div>
           </div>
         </div>
 
@@ -2468,7 +2470,7 @@
     <div class="frame-inner">
       <div class="reveal-up">
         <p class="frame-eyebrow">05 &middot; Semantic harmonization</p>
-        <h1 class="frame-headline">One way to feed the <em>pipeline</em>.</h1>
+        <h1 class="frame-headline">One way to <em>feed the pipeline</em>.</h1>
         <p class="frame-lede">LLM agents offer a powerful means for synthesizing cross-modal explanation, but are contaminated by <em>conventional understanding</em>, biasing analysis. One approach: build causal biological conviction from <strong>semantic harmonization</strong> of context-aware signal fragments across many data verticals.</p>
       </div>
 
@@ -3976,8 +3978,26 @@
     // v9: process EVERY dot with a label. No more "tier obstacles" —
     // the algorithm owns positioning for the whole timeline so all
     // labels get the same left-aligned / leader-from-side style.
+    // Dots flagged with .noauto keep their manual tier/jog classes
+    // and are pre-claimed as obstacles so neighbors avoid them.
+    const noautoDots = allDots.filter(d => d.classList.contains('noauto') && d.querySelector('.tag'));
+    noautoDots.forEach(dot => {
+      const tag = dot.querySelector('.tag');
+      const sub = dot.querySelector('.sub');
+      const tagR = tag.getBoundingClientRect();
+      const subR = sub.getBoundingClientRect();
+      if (tagR.width > 0 && subR.bottom > 0) {
+        placed.push({
+          x: Math.min(tagR.left, subR.left),
+          y: tagR.top,
+          w: Math.max(tagR.width, subR.width),
+          h: subR.bottom - tagR.top
+        });
+      }
+    });
     const items = allDots
       .filter(d => d.querySelector('.tag'))
+      .filter(d => !d.classList.contains('noauto'))
       .map(dot => {
         const leftPct = parseFloat(dot.style.left);
         const topPct = parseFloat(dot.style.top) || 50;
